@@ -5,6 +5,8 @@
   background-color: #ffffff;
   padding: 0.8rem 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 10;
 }
 
 .topbar-title {
@@ -14,9 +16,17 @@
 }
 
 .topbar-profile {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.profile-info {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  cursor: pointer;
+  user-select: none;
 }
 
 .profile-img {
@@ -29,4 +39,68 @@
 .profile-name {
   font-size: 0.95rem;
   color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.dropdown-icon {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.dropdown-icon.open {
+  transform: rotate(180deg);
+}
+
+/* === DROPDOWN MENU === */
+.dropdown-menu {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 0.5rem 0;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  animation: fadeIn 0.2s ease;
+  z-index: 100;
+}
+
+.dropdown-menu button {
+  background: none;
+  border: none;
+  padding: 0.8rem 1rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #0d3b2e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: background 0.2s ease;
+}
+
+.dropdown-menu button:hover {
+  background: rgba(13, 59, 46, 0.07);
+  color: #0d3b2e;
+}
+
+.dropdown-icon-left {
+  font-size: 1rem;
+  color: #65b89d;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
