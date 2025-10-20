@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FaChevronDown, FaSignOutAlt } from "react-icons/fa";
+import { FaChevronDown, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import "../assets/styles/topbar.css";
 import userIcon from "../assets/user-account.png";
 
@@ -12,6 +12,11 @@ const Topbar = () => {
   const handleLogout = () => {
     console.log("User logged out");
     // TODO: Add your logout logic here (clear tokens, redirect, etc.)
+  };
+
+  const handleProfile = () => {
+    console.log("Profile clicked");
+    // TODO: Navigate to profile page or open profile modal
   };
 
   // 🔒 Close dropdown when clicking outside
@@ -40,6 +45,10 @@ const Topbar = () => {
 
         {isOpen && (
           <div className="dropdown-menu">
+            <button onClick={handleProfile}>
+              <FaUserCircle className="dropdown-icon-left" />
+              Profile
+            </button>
             <button onClick={handleLogout}>
               <FaSignOutAlt className="dropdown-icon-left" />
               Logout
