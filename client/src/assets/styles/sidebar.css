@@ -40,23 +40,43 @@
 .sidebar-menu li {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 0;
-  cursor: pointer;
   border-radius: 8px;
-  padding-left: 1rem;
-  font-size: 1.15rem;
-  font-weight: 500;
   transition: background 0.3s ease, padding-left 0.3s ease;
 }
 
-.sidebar-menu li:hover {
-  background: rgba(255, 255, 255, 0.15);
-  padding-left: 2.1rem;
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  font-size: 1.15rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background 0.3s ease, padding-left 0.3s ease;
 }
 
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+  padding-left: 1.3rem;
+}
+
+/* === ICON === */
 .menu-icon {
   font-size: 1.2rem;
-  color: #28ad80; /* soft mint accent */
+  color: #28ad80;
   min-width: 20px;
+}
+
+/* === ACTIVE STATE === */
+.sidebar-menu li.active .sidebar-link {
+  background-color: #28ad80;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.sidebar-menu li.active .menu-icon {
+  color: #ffffff;
 }
