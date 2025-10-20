@@ -1,4 +1,5 @@
 import "../assets/styles/topbar.css";
+import userIcon from "../assets/user-account.png";
 
 const Topbar = () => {
   return (
@@ -6,11 +7,11 @@ const Topbar = () => {
       <h1 className="topbar-title">Dashboard</h1>
       <div className="topbar-profile">
         <img
-          src="https://via.placeholder.com/35"
+          src={userIcon}
           alt="User"
           className="profile-img"
         />
-        <span className="profile-name">John Doe</span>
+        <span className="profile-name">Hello, John Doe!</span>
       </div>
     </header>
   );

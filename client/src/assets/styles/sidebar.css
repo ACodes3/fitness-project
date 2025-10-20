@@ -1,5 +1,5 @@
 .sidebar {
-  width: 220px;
+  width: 250px;
   background-color: #cfe7e3;
   color: #333131;
   display: flex;
@@ -44,8 +44,8 @@
   padding: 1rem 0;
   cursor: pointer;
   border-radius: 8px;
-  padding-left: 1.8rem;
-  font-size: 1.05rem;
+  padding-left: 1rem;
+  font-size: 1.15rem;
   font-weight: 500;
   transition: background 0.3s ease, padding-left 0.3s ease;
 }

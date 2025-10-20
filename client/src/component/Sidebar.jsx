@@ -7,7 +7,7 @@ const Sidebar = () => {
     <aside className="sidebar">
       <div className="sidebar-header">
         <img src={logo} alt="MyApp Logo" className="sidebar-logo" />
-        <h2 className="sidebar-title">MyFitness App</h2>
+        <h2 className="sidebar-title">Another Fitness App</h2>
       </div>
 
       <ul className="sidebar-menu">
