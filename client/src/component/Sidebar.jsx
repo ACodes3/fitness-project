@@ -1,4 +1,4 @@
-import { FaAppleAlt, FaCog, FaDumbbell, FaHome } from "react-icons/fa";
+import { FaCog, FaDumbbell, FaHome } from "react-icons/fa";
 import { NavLink, useLocation } from "react-router-dom";
 import "../assets/styles/sidebar.css";
 import logo from "../assets/workout.png";
@@ -25,13 +25,6 @@ const Sidebar = () => {
           <NavLink to="/workouts" className="sidebar-link">
             <FaDumbbell className="menu-icon" />
             <span>Workouts</span>
-          </NavLink>
-        </li>
-
-        <li className={location.pathname === "/nutrition" ? "active" : ""}>
-          <NavLink to="/nutrition" className="sidebar-link">
-            <FaAppleAlt className="menu-icon" />
-            <span>Nutrition</span>
           </NavLink>
         </li>
 
