@@ -1,0 +1,17 @@
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f9faf9;
+}
+
+.main-content h2 {
+  color: #0d3b2e;
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.main-content p {
+  color: #4e5e59;
+  font-size: 1rem;
+  line-height: 1.6;
+}

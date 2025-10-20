@@ -1,0 +1,32 @@
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 0.8rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.topbar-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #0d3b2e;
+}
+
+.topbar-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.profile-img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-name {
+  font-size: 0.95rem;
+  color: #333;
+}
