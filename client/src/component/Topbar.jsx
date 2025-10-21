@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { FaChevronDown, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import "../assets/styles/topbar.css";
 import userIcon from "../assets/user-account.png";
 
 const Topbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleDropdown = () => setIsOpen((prev) => !prev);
 
@@ -16,7 +18,7 @@ const Topbar = () => {
 
   const handleProfile = () => {
     console.log("Profile clicked");
-    // TODO: Navigate to profile page or open profile modal
+    navigate("/profile");
   };
 
   // 🔒 Close dropdown when clicking outside
@@ -39,7 +41,9 @@ const Topbar = () => {
           <img src={userIcon} alt="User" className="profile-img" />
           <span className="profile-name">
             Hello, John Doe
-            <FaChevronDown className={`dropdown-icon ${isOpen ? "open" : ""}`} />
+            <FaChevronDown
+              className={`dropdown-icon ${isOpen ? "open" : ""}`}
+            />
           </span>
         </div>
 
