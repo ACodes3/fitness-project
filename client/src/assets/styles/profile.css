@@ -33,7 +33,7 @@
   font-size: 0.95rem;
 }
 
-.profile-info,
+.profile-info-card,
 .profile-activity {
   background: #fff;
   border-radius: 12px;
@@ -42,20 +42,20 @@
   margin-bottom: 1.5rem;
 }
 
-.profile-info h3,
+.profile-info-card h3,
 .profile-activity h3 {
   margin-bottom: 1rem;
   color: #17ba96;
 }
 
-.profile-info ul,
+.profile-info-card ul,
 .profile-activity ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.profile-info li,
+.profile-info-card li,
 .profile-activity li {
   margin-bottom: 0.6rem;
   color: #444;
