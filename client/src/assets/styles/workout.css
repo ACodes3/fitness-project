@@ -1,0 +1,99 @@
+.workout-container {
+  background-color: #f8f9fa;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  width: 95%;
+  margin: auto;
+  overflow-x: auto;
+}
+
+.workout-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: auto;
+}
+
+.workout-title {
+  text-align: center;
+  color: #17ba96;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-workout-button{
+    background-color: #17ba96;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.add-workout-button:hover{
+    background-color: #139b7d;
+}
+
+.workout-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.workout-table th,
+.workout-table td {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.95rem;
+}
+
+.workout-table th {
+  background-color: #17ba96;
+  color: white;
+  font-weight: 600;
+}
+
+.workout-table tr:hover {
+  background-color: #f1fdf9;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.pagination button {
+  background-color: #17ba96;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #139b7d;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: #444;
+  font-size: 0.95rem;
+}
