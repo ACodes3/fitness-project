@@ -97,3 +97,57 @@
   color: #444;
   font-size: 0.95rem;
 }
+
+/* Action Buttons inside Table */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Base icon button style */
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+/* Individual button color themes */
+.icon-button.view {
+  color: #17ba96; /* teal */
+}
+.icon-button.view:hover {
+  background-color: #e8f9f5;
+  color: #0e8d72;
+}
+
+.icon-button.edit {
+  color: #007bff; /* blue */
+}
+.icon-button.edit:hover {
+  background-color: #e7f1ff;
+  color: #0056b3;
+}
+
+.icon-button.delete {
+  color: #dc3545; /* red */
+}
+.icon-button.delete:hover {
+  background-color: #fceaea;
+  color: #a71d2a;
+}
+
+/* Optional: Add subtle hover scale for all icons */
+.icon-button:hover {
+  transform: scale(1.15);
+}
+
+.icon-button svg {
+  width: 1.2em;
+  height: 1.2em;
+}

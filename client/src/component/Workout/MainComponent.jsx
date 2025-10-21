@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaEdit, FaEye, FaTrashAlt } from "react-icons/fa";
 import "../../assets/styles/workout.css";
 
 const Workout = () => {
@@ -36,6 +37,10 @@ const Workout = () => {
     }
   };
 
+  const handleView = (id) => console.log("View details:", id);
+  const handleEdit = (id) => console.log("Edit workout:", id);
+  const handleDelete = (id) => console.log("Delete workout:", id);
+
   return (
     <div className="workout-container">
       <div className="workout-header">
@@ -51,7 +56,7 @@ const Workout = () => {
             <th>Workout Name</th>
             <th>Type</th>
             <th>Duration</th>
-            <th>Calories Burned</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -62,7 +67,29 @@ const Workout = () => {
               <td>{workout.name}</td>
               <td>{workout.type}</td>
               <td>{workout.duration}</td>
-              <td>{workout.calories}</td>
+              <td>
+                <button
+                  className="icon-button view"
+                  title="View Details"
+                  onClick={() => handleView(workout.id)}
+                >
+                  <FaEye />
+                </button>
+                <button
+                  className="icon-button edit"
+                  title="Edit Workout"
+                  onClick={() => handleEdit(workout.id)}
+                >
+                  <FaEdit />
+                </button>
+                <button
+                  className="icon-button delete"
+                  title="Delete Workout"
+                  onClick={() => handleDelete(workout.id)}
+                >
+                  <FaTrashAlt />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
