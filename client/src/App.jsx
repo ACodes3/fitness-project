@@ -1,4 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import ProtectedRoute from './component/ProtectedRoute'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
@@ -11,12 +12,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/workouts" element={<Workout />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/workouts" element={<ProtectedRoute><Workout /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       </Routes>
     </Router>
   )

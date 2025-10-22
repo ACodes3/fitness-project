@@ -1,11 +1,12 @@
 // server/routes/profile.js
 import express from "express";
 import pool from "../db/db.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Get profile info
-router.get("/:userId", async (req, res) => {
+// Protected route — requires valid token
+router.get("/:userId", verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT u.name, u.email, u.role, u.location, u.joined_at, u.avatar_url,
@@ -24,7 +25,8 @@ router.get("/:userId", async (req, res) => {
 // Update profile info
 router.put("/:userId", async (req, res) => {
   try {
-    const { name, email, role, location, weight_kg, height_cm, goal } = req.body;
+    const { name, email, role, location, weight_kg, height_cm, goal } =
+      req.body;
 
     await pool.query(
       `UPDATE users SET name=$1, email=$2, role=$3, location=$4 WHERE id=$5`,
