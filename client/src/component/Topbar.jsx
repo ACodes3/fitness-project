@@ -6,19 +6,27 @@ import userIcon from "../assets/user-account.png";
 
 const Topbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // 🔹 Load user info from localStorage on mount
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) {
+      setUser(storedUser);
+    }
+  }, []);
 
   const toggleDropdown = () => setIsOpen((prev) => !prev);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/login"); // Redirect back to login page
+    navigate("/login");
   };
 
   const handleProfile = () => {
-    console.log("Profile clicked");
     navigate("/profile");
   };
 
@@ -39,9 +47,13 @@ const Topbar = () => {
 
       <div className="topbar-profile" ref={dropdownRef}>
         <div className="profile-info" onClick={toggleDropdown}>
-          <img src={userIcon} alt="User" className="profile-img" />
+          <img
+            src={userIcon}
+            alt="User"
+            className="profile-img"
+          />
           <span className="profile-name">
-            Hello, John Doe
+            {user ? `Hello, ${user.name}` : "Hello, User"}
             <FaChevronDown
               className={`dropdown-icon ${isOpen ? "open" : ""}`}
             />
