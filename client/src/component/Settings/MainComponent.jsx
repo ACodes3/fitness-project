@@ -1,6 +1,117 @@
-import "../../assets/styles/settings.css"; // ✅ create this CSS file
+import { useEffect, useState } from "react";
+import "../../assets/styles/settings.css";
 
 const MainComponent = () => {
+  const [settings, setSettings] = useState({
+    username: "",
+    email: "",
+    language: "English",
+    theme: "Light",
+    emailAlerts: true,
+    smsNotifications: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+
+        if (!storedUser || !token) {
+          window.location.href = "/login";
+          return;
+        }
+
+        const res = await fetch(
+          `http://localhost:5000/api/settings/${storedUser.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await res.json();
+
+        if (res.ok && data) {
+          console.log("Fetched settings:", data); // 👈 Add this to inspect actual value
+
+          setSettings({
+            username: storedUser.name,
+            email: storedUser.email,
+            language:
+              data.language === "en"
+                ? "English"
+                : data.language === "es"
+                ? "Spanish"
+                : data.language === "fr"
+                ? "French"
+                : "English",
+            theme:
+              data.theme?.toLowerCase() === "dark"
+                ? "Dark"
+                : data.theme?.toLowerCase() === "system"
+                ? "System Default"
+                : "Light",
+            emailAlerts: data.notifications?.emailAlerts ?? true,
+            smsNotifications: data.notifications?.smsNotifications ?? false,
+          });
+
+          applyTheme(data.theme || "Light");
+        }
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setSettings((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(
+        `http://localhost:5000/api/settings/${storedUser.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            theme: settings.theme,
+            language: settings.language,
+            notifications: {
+              emailAlerts: settings.emailAlerts,
+              smsNotifications: settings.smsNotifications,
+            },
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to save settings");
+      alert("Settings updated successfully!");
+      setIsEditing(false);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  if (loading) return <p>Loading settings...</p>;
+
   return (
     <div className="settings-container">
       <h2 className="settings-title">Settings</h2>
@@ -11,19 +122,16 @@ const MainComponent = () => {
         <div className="form-grid">
           <label>
             Username
-            <input type="text" placeholder="John Doe" />
+            <input
+              type="text"
+              name="username"
+              value={settings.username}
+              disabled
+            />
           </label>
           <label>
             Email
-            <input type="email" placeholder="john@example.com" />
-          </label>
-          <label>
-            Password
-            <input type="password" placeholder="••••••••" />
-          </label>
-          <label>
-            Confirm Password
-            <input type="password" placeholder="••••••••" />
+            <input type="email" name="email" value={settings.email} disabled />
           </label>
         </div>
       </section>
@@ -34,7 +142,12 @@ const MainComponent = () => {
         <div className="form-grid">
           <label>
             Language
-            <select>
+            <select
+              name="language"
+              value={settings.language}
+              onChange={handleChange}
+              disabled={!isEditing}
+            >
               <option>English</option>
               <option>Spanish</option>
               <option>French</option>
@@ -42,7 +155,12 @@ const MainComponent = () => {
           </label>
           <label>
             Theme
-            <select>
+            <select
+              name="theme"
+              value={settings.theme}
+              onChange={handleChange}
+              disabled={!isEditing}
+            >
               <option>Light</option>
               <option>Dark</option>
               <option>System Default</option>
@@ -56,21 +174,49 @@ const MainComponent = () => {
         <h3>Notifications</h3>
         <div className="toggle-group">
           <label className="toggle">
-            <input type="checkbox" defaultChecked />
+            <input
+              type="checkbox"
+              name="emailAlerts"
+              checked={settings.emailAlerts}
+              onChange={handleChange}
+              disabled={!isEditing}
+            />
             <span className="slider"></span>
             Email Alerts
           </label>
           <label className="toggle">
-            <input type="checkbox" />
+            <input
+              type="checkbox"
+              name="smsNotifications"
+              checked={settings.smsNotifications}
+              onChange={handleChange}
+              disabled={!isEditing}
+            />
             <span className="slider"></span>
             SMS Notifications
           </label>
         </div>
       </section>
 
+      {/* Buttons */}
       <div className="settings-actions">
-        <button className="btn save-btn">Save Changes</button>
-        <button className="btn cancel-btn">Cancel</button>
+        {isEditing ? (
+          <>
+            <button className="btn save-btn" onClick={handleSave}>
+              Save Changes
+            </button>
+            <button
+              className="btn cancel-btn"
+              onClick={() => setIsEditing(false)}
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button className="btn save-btn" onClick={() => setIsEditing(true)}>
+            Edit Settings
+          </button>
+        )}
       </div>
     </div>
   );
