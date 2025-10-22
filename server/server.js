@@ -2,6 +2,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import dashboardRoutes from "./routes/dashboard.js";
 import profileRoutes from "./routes/profile.js";
 import settingsRoutes from "./routes/settings.js";
 import stepsRoutes from "./routes/steps.js";
@@ -19,6 +20,7 @@ app.use("/api/workouts", workoutsRoutes);
 app.use("/api/steps", stepsRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.get("/", (req, res) => res.send("✅ Fitness API running!"));
 
