@@ -12,8 +12,9 @@ const Topbar = () => {
   const toggleDropdown = () => setIsOpen((prev) => !prev);
 
   const handleLogout = () => {
-    console.log("User logged out");
-    // TODO: Add your logout logic here (clear tokens, redirect, etc.)
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login"); // Redirect back to login page
   };
 
   const handleProfile = () => {
