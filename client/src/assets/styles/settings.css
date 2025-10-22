@@ -1,0 +1,145 @@
+.settings-container {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 60px);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.settings-title {
+  color: #17ba96;
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  text-align: start;
+}
+
+.settings-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.settings-section h3 {
+  color: #17ba96;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem 2rem;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-grid input,
+.form-grid select {
+  margin-top: 0.3rem;
+  padding: 0.7rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #f9f9f9;
+  transition: all 0.3s;
+}
+
+.form-grid input:focus,
+.form-grid select:focus {
+  border-color: #17ba96;
+  outline: none;
+  background-color: #fff;
+}
+
+/* Toggle switches */
+.toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  position: relative;
+  font-weight: 500;
+  color: #333;
+}
+
+.toggle input {
+  display: none;
+}
+
+.slider {
+  width: 42px;
+  height: 22px;
+  background-color: #ccc;
+  border-radius: 20px;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.slider::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle input:checked + .slider {
+  background-color: #17ba96;
+}
+
+.toggle input:checked + .slider::after {
+  transform: translateX(20px);
+}
+
+/* Buttons */
+.settings-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.save-btn {
+  background-color: #17ba96;
+  color: #fff;
+}
+
+.save-btn:hover {
+  background-color: #139b7d;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #bbb;
+}
