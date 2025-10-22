@@ -5,25 +5,42 @@ import "../../assets/styles/workout.css";
 const Workout = () => {
   const [workouts, setWorkouts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const itemsPerPage = 25;
 
-  // Load workout data
+  // ✅ Fetch workouts from backend
   useEffect(() => {
-    const mockData = Array.from({ length: 150 }, (_, i) => ({
-      id: i + 1,
-      date: new Date(Date.now() - i * 86400000).toLocaleDateString(),
-      name: `Workout ${i + 1}`,
-      duration: `${30 + (i % 60)} mins`,
-      calories: 200 + i * 5,
-      type: i % 2 === 0 ? "Cardio" : "Strength",
-    }));
+    const fetchWorkouts = async () => {
+      try {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
 
-    // Sort by most recent first ✅
-    const sortedData = mockData.sort((a, b) => {
-      return new Date(b.date) - new Date(a.date);
-    });
+        if (!storedUser || !token) {
+          window.location.href = "/login";
+          return;
+        }
 
-    setWorkouts(sortedData);
+        const res = await fetch(`http://localhost:5000/api/workouts/${storedUser.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || "Failed to fetch workouts");
+
+        // Sort newest first
+        const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setWorkouts(sorted);
+      } catch (err) {
+        console.error("Error loading workouts:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkouts();
   }, []);
 
   // Pagination logic
@@ -32,14 +49,15 @@ const Workout = () => {
   const currentData = workouts.slice(startIndex, startIndex + itemsPerPage);
 
   const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
   const handleView = (id) => console.log("View details:", id);
   const handleEdit = (id) => console.log("Edit workout:", id);
   const handleDelete = (id) => console.log("Delete workout:", id);
+
+  if (loading) return <p>Loading workouts...</p>;
+  if (error) return <p className="error-text">Error: {error}</p>;
 
   return (
     <div className="workout-container">
@@ -63,10 +81,10 @@ const Workout = () => {
           {currentData.map((workout, index) => (
             <tr key={workout.id}>
               <td>{startIndex + index + 1}</td>
-              <td>{workout.date}</td>
+              <td>{new Date(workout.date).toLocaleDateString()}</td>
               <td>{workout.name}</td>
               <td>{workout.type}</td>
-              <td>{workout.duration}</td>
+              <td>{workout.duration_min} min</td>
               <td>
                 <button
                   className="icon-button view"
@@ -103,11 +121,9 @@ const Workout = () => {
         >
           ← Prev
         </button>
-
         <span>
           Page {currentPage} of {totalPages}
         </span>
-
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
