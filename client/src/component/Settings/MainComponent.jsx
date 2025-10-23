@@ -35,7 +35,7 @@ const MainComponent = () => {
         const data = await res.json();
 
         if (res.ok && data) {
-          console.log("Fetched settings:", data); // 👈 Add this to inspect actual value
+          console.log("Fetched settings:", data);
 
           setSettings({
             username: storedUser.name,

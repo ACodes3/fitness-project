@@ -16,7 +16,7 @@ const Signup = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // You can replace this with your signup logic or API call
+    // Sign up logic - TODO: Implement actual signup API call
     console.log("Signup data:", formData);
   };
 

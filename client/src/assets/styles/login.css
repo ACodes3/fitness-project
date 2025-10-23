@@ -37,7 +37,7 @@
 /* === FORM GROUP === */
 .form-group {
   margin-bottom: 1.3rem;
-  text-align: left; /* ✅ left-align labels */
+  text-align: left;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -48,7 +48,7 @@
   font-size: 0.9rem;
   color: #495e57;
   margin-bottom: 0.4rem;
-  text-align: left; /* ✅ ensures label text stays left */
+  text-align: left;
 }
 
 .form-group input {

@@ -1,4 +1,3 @@
-// server/routes/workouts.js
 import express from "express";
 import pool from "../db/db.js";
 

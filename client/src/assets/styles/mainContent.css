@@ -183,7 +183,7 @@
   animation: wave 1.5s infinite ease-in-out;
 }
 
-/* Optional subtle wave motion */
+/* Subtle wave motion */
 @keyframes wave {
   0% {
     transform: rotate(0deg);

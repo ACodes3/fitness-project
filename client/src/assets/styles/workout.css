@@ -142,7 +142,7 @@
   color: #a71d2a;
 }
 
-/* Optional: Add subtle hover scale for all icons */
+/* Subtle hover scale for all icons */
 .icon-button:hover {
   transform: scale(1.15);
 }

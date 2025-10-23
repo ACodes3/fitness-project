@@ -11,7 +11,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setToast(null); // clear previous toast
+    setToast(null);
 
     try {
       const res = await fetch("http://localhost:5000/api/users/login", {
@@ -28,11 +28,11 @@ const Login = () => {
         throw new Error(data.message || "Login failed");
       }
 
-      // ✅ Save token and user in localStorage
+      // Save token and user in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // ✅ Show success toast
+      // Show success toast
       setToast({
         type: "success",
         title: "Welcome!",
@@ -44,7 +44,7 @@ const Login = () => {
         window.location.href = "/";
       }, 1500);
     } catch (err) {
-      // ❌ Show error toast
+      // Show error toast
       setToast({
         type: "error",
         title: "Login Failed",

@@ -1,5 +1,5 @@
 /* ================================
-   PROFILE PAGE - FULL STYLESHEET
+   PROFILE PAGE
    ================================ */
 
 .profile-container {
@@ -155,11 +155,6 @@
 /* ================================
    STATS SECTION (3 CARDS IN ONE ROW)
    ================================ */
-
-/* ================================
-   STATS SECTION (REDESIGNED)
-   ================================ */
-
 .profile-stats {
   display: flex;
   justify-content: center;

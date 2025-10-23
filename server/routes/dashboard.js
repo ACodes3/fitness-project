@@ -1,4 +1,3 @@
-// server/routes/dashboard.js
 import express from "express";
 import pool from "../db/db.js";
 import { verifyToken } from "../middleware/auth.js";
@@ -26,7 +25,7 @@ router.get("/:userId", verifyToken, async (req, res) => {
       ),
     ]);
 
-    // 🧮 Aggregate workouts per month (this year)
+    // Aggregate workouts per month (this year)
     const monthlyWorkouts = await pool.query(
       `SELECT TO_CHAR(date, 'Mon') AS month,
               COUNT(*) AS workouts
@@ -38,7 +37,7 @@ router.get("/:userId", verifyToken, async (req, res) => {
       [userId]
     );
 
-    // 🧠 Ensure all 12 months exist even if user has no workouts
+    // Ensure all 12 months exist even if user has no workouts
     const allMonths = [
       "Jan", "Feb", "Mar", "Apr", "May", "Jun",
       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -56,7 +55,7 @@ router.get("/:userId", verifyToken, async (req, res) => {
       totalWorkouts: workouts.rows[0]?.total_workouts || 0,
       totalSteps: steps.rows[0]?.total_steps || 0,
       activeDays: steps.rows[0]?.active_days || 0,
-      monthlyData, // ✅ now always exists, calculated dynamically
+      monthlyData,
     });
   } catch (err) {
     console.error("Error loading dashboard:", err);

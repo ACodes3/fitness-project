@@ -1,4 +1,3 @@
-// server/routes/profile.js
 import express from "express";
 import pool from "../db/db.js";
 import { verifyToken } from "../middleware/auth.js";

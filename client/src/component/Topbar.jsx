@@ -3,7 +3,7 @@ import { FaChevronDown, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../assets/styles/topbar.css";
 import userIcon from "../assets/user-account.png";
-import Toast from "../component/Toast/Toast"; // ✅ adjust path if needed
+import Toast from "../component/Toast/Toast";
 
 const Topbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +12,7 @@ const Topbar = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // 🔹 Load user info from localStorage
+  // Load user info from localStorage
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser) {
@@ -26,7 +26,7 @@ const Topbar = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    // ✅ Show success toast
+    // Show success toast
     setToast({
       type: "success",
       title: "Logged Out",
@@ -43,7 +43,7 @@ const Topbar = () => {
     navigate("/profile");
   };
 
-  // 🔒 Close dropdown when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -56,7 +56,7 @@ const Topbar = () => {
 
   return (
     <>
-      {/* ✅ Toast Notification */}
+      {/* Toast Notification */}
       {toast && (
         <div className="toast-wrapper">
           <Toast type={toast.type} title={toast.title} message={toast.message} />

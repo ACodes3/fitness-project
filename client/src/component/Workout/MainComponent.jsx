@@ -9,7 +9,7 @@ const Workout = () => {
   const [error, setError] = useState("");
   const itemsPerPage = 25;
 
-  // ✅ Fetch workouts from backend
+  // Fetch workouts from backend
   useEffect(() => {
     const fetchWorkouts = async () => {
       try {
