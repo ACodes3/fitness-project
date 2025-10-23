@@ -106,3 +106,10 @@
   color: #4ea389;
   text-decoration: underline;
 }
+
+.toast-wrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}

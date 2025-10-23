@@ -1,16 +1,17 @@
 import { useState } from "react";
 import "../assets/styles/login.css";
+import Toast from "../component/Toast/Toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setToast(null); // clear previous toast
 
     try {
       const res = await fetch("http://localhost:5000/api/users/login", {
@@ -31,10 +32,24 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      alert(`Welcome, ${data.user.name}!`);
-      window.location.href = "/"; // or wherever you want to redirect
+      // ✅ Show success toast
+      setToast({
+        type: "success",
+        title: "Welcome!",
+        message: `Hello, ${data.user.name}. Redirecting...`,
+      });
+
+      // Redirect after short delay
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1500);
     } catch (err) {
-      setError(err.message);
+      // ❌ Show error toast
+      setToast({
+        type: "error",
+        title: "Login Failed",
+        message: err.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -42,10 +57,15 @@ const Login = () => {
 
   return (
     <div className="login-container">
+      {/* Toast */}
+      {toast && (
+        <div className="toast-wrapper">
+          <Toast type={toast.type} title={toast.title} message={toast.message} />
+        </div>
+      )}
+
       <form className="login-form" onSubmit={handleSubmit}>
         <h2 className="login-title">Login</h2>
-
-        {error && <p className="error-text">{error}</p>}
 
         <div className="form-group">
           <label>Email</label>
