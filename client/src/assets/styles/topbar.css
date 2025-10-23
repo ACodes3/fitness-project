@@ -94,6 +94,13 @@
   color: #65b89d;
 }
 
+.toast-wrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
