@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import "../../assets/styles/body.css";
 import "../../assets/styles/settings.css";
+import { applyTheme } from "../../utils/theme";
 
 const MainComponent = () => {
   const [settings, setSettings] = useState({
@@ -72,10 +74,16 @@ const MainComponent = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+
     setSettings((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: newValue,
     }));
+
+    if (name === "theme") {
+      applyTheme(newValue);
+    }
   };
 
   const handleSave = async () => {

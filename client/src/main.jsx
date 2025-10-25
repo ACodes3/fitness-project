@@ -1,9 +1,18 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.jsx";
+import "./assets/styles/body.css";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
+import { applyTheme } from "./utils/theme.js";
 
-createRoot(document.getElementById('root')).render(
+// ✅ Apply saved theme before rendering
+const savedTheme = localStorage.getItem("theme") || "light";
+applyTheme(savedTheme);
+
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
-  </StrictMode>,
-)
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  </StrictMode>
+);

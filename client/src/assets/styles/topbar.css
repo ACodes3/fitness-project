@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   padding: 0.8rem 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   position: relative;
@@ -12,7 +12,7 @@
 .topbar-title {
   font-size: 1.3rem;
   font-weight: 600;
-  color: #0d3b2e;
+  color: var(--text);
 }
 
 .topbar-profile {
@@ -58,7 +58,7 @@
   position: absolute;
   top: 110%;
   right: 0;
-  background: #ffffff;
+  background: var(--card-bg);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   padding: 0.5rem 0;
@@ -76,7 +76,7 @@
   padding: 0.8rem 1rem;
   text-align: left;
   font-size: 0.9rem;
-  color: #0d3b2e;
+  color: var(--text);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -91,7 +91,7 @@
 
 .dropdown-icon-left {
   font-size: 1rem;
-  color: #65b89d;
+  color: var(--accent);
 }
 
 .toast-wrapper {
