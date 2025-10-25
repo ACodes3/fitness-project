@@ -7,28 +7,34 @@ const router = express.Router();
 router.get("/:userId", verifyToken, async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log("📊 Dashboard requested for user:", userId);
 
     const [workouts, steps] = await Promise.all([
       pool.query(
-        `SELECT COUNT(*) AS total_workouts
+        `SELECT COUNT(*)::int AS total_workouts
          FROM workouts
          WHERE user_id = $1
          AND date >= date_trunc('month', CURRENT_DATE)`,
         [userId]
       ),
       pool.query(
-        `SELECT SUM(steps) AS total_steps, COUNT(DISTINCT date) AS active_days
-         FROM steps_logs
-         WHERE user_id = $1
-         AND date >= date_trunc('month', CURRENT_DATE)`,
+        `SELECT 
+      SUM(steps_count)::int AS total_steps,
+      COUNT(DISTINCT step_date)::int AS active_days
+   FROM steps_logs
+   WHERE user_id = $1
+     AND step_date >= date_trunc('month', CURRENT_DATE)`,
         [userId]
       ),
     ]);
 
-    // Aggregate workouts per month (this year)
+    console.log("🧩 Workouts result:", workouts.rows);
+    console.log("🦶 Steps result:", steps.rows);
+
+    // Monthly breakdown
     const monthlyWorkouts = await pool.query(
       `SELECT TO_CHAR(date, 'Mon') AS month,
-              COUNT(*) AS workouts
+              COUNT(*)::int AS workouts
        FROM workouts
        WHERE user_id = $1
          AND date >= date_trunc('year', CURRENT_DATE)
@@ -37,17 +43,26 @@ router.get("/:userId", verifyToken, async (req, res) => {
       [userId]
     );
 
-    // Ensure all 12 months exist even if user has no workouts
     const allMonths = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     const monthlyData = allMonths.map((month) => {
       const found = monthlyWorkouts.rows.find((m) => m.month === month);
       return {
         month,
-        workouts: found ? parseInt(found.workouts) : 0,
+        workouts: found ? found.workouts : 0,
       };
     });
 
@@ -58,7 +73,7 @@ router.get("/:userId", verifyToken, async (req, res) => {
       monthlyData,
     });
   } catch (err) {
-    console.error("Error loading dashboard:", err);
+    console.error("❌ Error loading dashboard:", err);
     res.status(500).json({ error: "Failed to load dashboard data" });
   }
 });
