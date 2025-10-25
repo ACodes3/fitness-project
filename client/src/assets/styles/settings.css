@@ -1,20 +1,21 @@
 .settings-container {
   padding: 2rem;
-  background-color: #f8f9fa;
+  background-color: var(--bg);
+  color: var(--text);
   min-height: calc(100vh - 60px);
   box-sizing: border-box;
   overflow-y: auto;
 }
 
 .settings-title {
-  color: #17ba96;
+  color: var(--accent);
   font-size: 1.8rem;
   margin-bottom: 2rem;
   text-align: start;
 }
 
 .settings-section {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 1.5rem 2rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -22,9 +23,9 @@
 }
 
 .settings-section h3 {
-  color: #17ba96;
+  color: var(--accent);
   margin-bottom: 1rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
 }
 
@@ -38,25 +39,26 @@
   display: flex;
   flex-direction: column;
   font-weight: 500;
-  color: #333;
+  color: var(--text);
 }
 
 .form-grid input,
 .form-grid select {
   margin-top: 0.3rem;
   padding: 0.7rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 0.95rem;
-  background-color: #f9f9f9;
+  background-color: var(--card-bg);
+  color: var(--text);
   transition: all 0.3s;
 }
 
 .form-grid input:focus,
 .form-grid select:focus {
-  border-color: #17ba96;
+  border-color: var(--accent);
   outline: none;
-  background-color: #fff;
+  background-color: var(--card-bg);
 }
 
 /* Toggle switches */
@@ -73,7 +75,7 @@
   gap: 0.8rem;
   position: relative;
   font-weight: 500;
-  color: #333;
+  color: var(--text);
 }
 
 .toggle input {
@@ -83,7 +85,7 @@
 .slider {
   width: 42px;
   height: 22px;
-  background-color: #ccc;
+  background-color: var(--border);
   border-radius: 20px;
   position: relative;
   transition: background-color 0.3s;
@@ -102,7 +104,7 @@
 }
 
 .toggle input:checked + .slider {
-  background-color: #17ba96;
+  background-color: var(--accent);
 }
 
 .toggle input:checked + .slider::after {
@@ -123,23 +125,23 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: filter 0.2s ease, background-color 0.3s ease;
 }
 
 .save-btn {
-  background-color: #17ba96;
+  background-color: var(--accent);
   color: #fff;
 }
 
 .save-btn:hover {
-  background-color: #139b7d;
+  filter: brightness(0.9);
 }
 
 .cancel-btn {
-  background-color: #ccc;
-  color: #333;
+  background-color: var(--border);
+  color: var(--text);
 }
 
 .cancel-btn:hover {
-  background-color: #bbb;
+  background-color: var(--hover-bg);
 }
