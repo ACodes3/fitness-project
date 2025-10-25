@@ -21,14 +21,10 @@ A full‑stack fitness tracking platform built with React (Vite), Node.js (Expre
 - bcrypt installed (hashing planned; not fully wired yet)
 
 ### 🗄️ Database
-- PostgreSQL (local or hosted)
-- Tables used: `users`, `fitness_profile`, `workouts`, `workout_exercises`, `steps_logs`, `settings`
+A standalone copy of this schema is available at `server/schema.sql` for display/reference.
 
----
 
 ## 🧩 Features
-
-- JWT login with protected routes (Profile, Settings, Dashboard)
 - Dashboard: monthly totals and a yearly workout trend line chart
 - Workouts: list and create (API ready), client table with pagination
 - Steps: log steps with derived distance and calories
