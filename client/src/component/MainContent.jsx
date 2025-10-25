@@ -3,10 +3,8 @@ import {
   FaCalendarCheck,
   FaDumbbell,
   FaRegHandPaper,
-  FaRunning,
-  FaWalking,
+  FaWalking
 } from "react-icons/fa";
-import { GiLotus } from "react-icons/gi";
 import {
   CartesianGrid,
   Line,
@@ -21,53 +19,63 @@ import "../assets/styles/mainContent.css";
 const MainContent = () => {
   const [loading, setLoading] = useState(true);
   const [dashboard, setDashboard] = useState(null);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
+  const [user, setUser] = useState(null);
 
+  // ✅ Load user once, not every render
   useEffect(() => {
-    if (!user || !token) {
-      console.warn("No user or token found in localStorage");
-      return;
-    }
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    setUser(storedUser);
+  }, []);
+
+  // ✅ Fetch dashboard once when component mounts
+  useEffect(() => {
+    if (!user) return;
 
     const fetchDashboardData = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/dashboard/${user.id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-        if (!res.ok) throw new Error("Failed to load dashboard data");
+        const res = await fetch(
+          `http://localhost:5000/api/dashboard/${user.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch dashboard");
 
         const data = await res.json();
-        console.log("📈 Dashboard data:", data);
         setDashboard(data);
       } catch (err) {
-        console.error("Error loading dashboard:", err);
+        console.error("❌ Error loading dashboard:", err);
       } finally {
-        setLoading(false); // ✅ stop loading
+        setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [user]); // ✅ runs once, after user is loaded
 
   if (loading) return <p className="loading-text">Loading dashboard...</p>;
-  if (!dashboard) return <p className="error-text">Failed to load dashboard data.</p>;
+  if (!dashboard) return <p className="error-text">Failed to load dashboard.</p>;
 
   return (
     <main className="main-content">
       <h2 className="welcome-text">
-        Welcome back, {user?.name || "User"} <FaRegHandPaper className="wave-icon" />
+        Welcome back, {user?.name} <FaRegHandPaper className="wave-icon" />
       </h2>
 
       {/* === DASHBOARD CARDS === */}
       <div className="dashboard-cards">
         <div className="card">
-          <div className="card-icon workout"><FaDumbbell /></div>
+          <div className="card-icon workout">
+            <FaDumbbell />
+          </div>
           <div className="card-text">
             <h3>Total Workouts this Month</h3>
             <p>{dashboard.totalWorkouts}</p>
@@ -75,7 +83,9 @@ const MainContent = () => {
         </div>
 
         <div className="card">
-          <div className="card-icon steps"><FaWalking /></div>
+          <div className="card-icon steps">
+            <FaWalking />
+          </div>
           <div className="card-text">
             <h3>Total Steps this Month</h3>
             <p>{dashboard.totalSteps?.toLocaleString() || 0}</p>
@@ -83,7 +93,9 @@ const MainContent = () => {
         </div>
 
         <div className="card">
-          <div className="card-icon active"><FaCalendarCheck /></div>
+          <div className="card-icon active">
+            <FaCalendarCheck />
+          </div>
           <div className="card-text">
             <h3>Active Days this Month</h3>
             <p>{dashboard.activeDays}</p>
@@ -99,13 +111,7 @@ const MainContent = () => {
             <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
             <XAxis dataKey="month" />
             <YAxis allowDecimals={false} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#fff",
-                borderRadius: "8px",
-                border: "1px solid #ddd",
-              }}
-            />
+            <Tooltip />
             <Line
               type="monotone"
               dataKey="workouts"
@@ -116,33 +122,6 @@ const MainContent = () => {
             />
           </LineChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* === RECENT ACTIVITY === */}
-      <div className="recent-activity">
-        <h3>Recent Workouts</h3>
-        <ul>
-          <li>
-            <div className="activity-item">
-              <span className="activity-icon run"><FaRunning /></span>
-              <p>Morning Run — 5km — 6,200 steps</p>
-            </div>
-          </li>
-
-          <li>
-            <div className="activity-item">
-              <span className="activity-icon strength"><FaDumbbell /></span>
-              <p>Upper Body Strength — 45 mins</p>
-            </div>
-          </li>
-
-          <li>
-            <div className="activity-item">
-              <span className="activity-icon yoga"><GiLotus /></span>
-              <p>Yoga Session — 30 mins</p>
-            </div>
-          </li>
-        </ul>
       </div>
     </main>
   );
