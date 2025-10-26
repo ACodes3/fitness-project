@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { FaEdit, FaEye, FaTrashAlt } from "react-icons/fa";
 import "../../assets/styles/workout.css";
+import Modal from "../Modals/Modal";
 
 const Workout = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [workouts, setWorkouts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -21,13 +23,17 @@ const Workout = () => {
           return;
         }
 
-        const res = await fetch(`http://localhost:5000/api/workouts/${storedUser.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `http://localhost:5000/api/workouts/${storedUser.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.message || "Failed to fetch workouts");
+        if (!res.ok)
+          throw new Error(data.message || "Failed to fetch workouts");
 
         // Sort newest first
         const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -56,6 +62,11 @@ const Workout = () => {
   const handleEdit = (id) => console.log("Edit workout:", id);
   const handleDelete = (id) => console.log("Delete workout:", id);
 
+  const handleAddWorkout = (newWorkout) => {
+    console.log("✅ New Workout Added:", newWorkout);
+    // You can now call your backend POST API here to save the workout
+  };
+
   if (loading) return <p>Loading workouts...</p>;
   if (error) return <p className="error-text">Error: {error}</p>;
 
@@ -63,7 +74,12 @@ const Workout = () => {
     <div className="workout-container">
       <div className="workout-header">
         <h2 className="workout-title">Latest Workouts</h2>
-        <button className="add-workout-button">Add Workout</button>
+        <button
+          className="add-workout-button"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Add Workout
+        </button>
       </div>
 
       <table className="workout-table">
@@ -112,6 +128,12 @@ const Workout = () => {
           ))}
         </tbody>
       </table>
+      {/* Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddWorkout}
+      />
 
       {/* Pagination Controls */}
       <div className="pagination">
