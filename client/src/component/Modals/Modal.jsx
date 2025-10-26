@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../../assets/styles/modal.css";
+import Toast from "../Toast/Toast";
 
 const Modal = ({ isOpen, onClose, onSubmit }) => {
+  const [toast, setToast] = useState(null);
   const [type, setType] = useState("Strength");
   const [exercises, setExercises] = useState([
     { exercise_name: "", sets: "", reps: "", weight_kg: "", duration_min: "" },
   ]);
 
+  // ✅ Hooks always come before conditional returns
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // ✅ Safe conditional return (after hooks)
   if (!isOpen) return null;
 
   const handleExerciseChange = (index, field, value) => {
@@ -47,28 +58,47 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
 
     console.log("📤 Submitting workout:", workoutData);
 
-    const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:5000/api/workouts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        ...workoutData,
-        user_id: JSON.parse(localStorage.getItem("user")).id,
-      }),
-    });
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/workouts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...workoutData,
+          user_id: JSON.parse(localStorage.getItem("user")).id,
+        }),
+      });
 
-    const data = await res.json();
-    console.log("✅ Workout saved:", data);
+      const data = await res.json();
+      console.log("✅ Workout saved:", data);
 
-    if (res.ok) {
-      alert("Workout added successfully!");
-      onSubmit(data.workout); // notify parent
-      onClose();
-    } else {
-      alert(`Failed to save workout: ${data.error || "Unknown error"}`);
+      if (res.ok) {
+        setToast({
+          type: "success",
+          title: "Workout Saved",
+          message: "Your workout has been successfully added!",
+        });
+
+        onSubmit(data.workout);
+        // small delay before closing so user sees toast
+        setTimeout(() => onClose(), 1000);
+      } else {
+        setToast({
+          type: "error",
+          title: "Save Failed",
+          message: data.error || "Could not save the workout.",
+        });
+      }
+    } catch (err) {
+      console.error("❌ Error saving workout:", err);
+      setToast({
+        type: "error",
+        title: "Network Error",
+        message: "Something went wrong while saving your workout.",
+      });
     }
   };
 
@@ -120,9 +150,7 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
           </div>
         ));
 
-      case "Cardio":
-      case "Flexibility":
-      case "Yoga":
+      default:
         return exercises.map((ex, i) => (
           <div key={i} className="exercise-row">
             <input
@@ -154,14 +182,22 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
             )}
           </div>
         ));
-
-      default:
-        return null;
     }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
+      {/* Toast notification */}
+      {toast && (
+        <div className="toast-wrapper">
+          <Toast
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+          />
+        </div>
+      )}
+
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">Add New Workout</h2>
 
