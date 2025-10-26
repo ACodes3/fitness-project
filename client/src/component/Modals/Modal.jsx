@@ -18,7 +18,13 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
   const addExercise = () => {
     setExercises([
       ...exercises,
-      { exercise_name: "", sets: "", reps: "", weight_kg: "", duration_min: "" },
+      {
+        exercise_name: "",
+        sets: "",
+        reps: "",
+        weight_kg: "",
+        duration_min: "",
+      },
     ]);
   };
 
@@ -26,21 +32,44 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
     setExercises(exercises.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
 
-    const workout = {
+    const formData = new FormData(e.target);
+    const workoutData = {
       name: formData.get("name"),
-      type: formData.get("type"),
+      type,
       date: formData.get("date"),
-      duration_min: formData.get("duration_min") || null,
-      notes: formData.get("notes") || null,
+      duration_min: formData.get("duration_min"),
+      notes: formData.get("notes"),
       exercises,
     };
 
-    onSubmit(workout);
-    onClose();
+    console.log("📤 Submitting workout:", workoutData);
+
+    const token = localStorage.getItem("token");
+    const res = await fetch("http://localhost:5000/api/workouts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ...workoutData,
+        user_id: JSON.parse(localStorage.getItem("user")).id,
+      }),
+    });
+
+    const data = await res.json();
+    console.log("✅ Workout saved:", data);
+
+    if (res.ok) {
+      alert("Workout added successfully!");
+      onSubmit(data.workout); // notify parent
+      onClose();
+    } else {
+      alert(`Failed to save workout: ${data.error || "Unknown error"}`);
+    }
   };
 
   const renderExerciseFields = () => {
@@ -52,7 +81,9 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
               type="text"
               placeholder="Exercise Name"
               value={ex.exercise_name}
-              onChange={(e) => handleExerciseChange(i, "exercise_name", e.target.value)}
+              onChange={(e) =>
+                handleExerciseChange(i, "exercise_name", e.target.value)
+              }
               required
             />
             <input
@@ -73,7 +104,9 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
               type="number"
               placeholder="Weight (kg)"
               value={ex.weight_kg}
-              onChange={(e) => handleExerciseChange(i, "weight_kg", e.target.value)}
+              onChange={(e) =>
+                handleExerciseChange(i, "weight_kg", e.target.value)
+              }
             />
             {i > 0 && (
               <button
@@ -96,14 +129,18 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
               type="text"
               placeholder="Exercise Name"
               value={ex.exercise_name}
-              onChange={(e) => handleExerciseChange(i, "exercise_name", e.target.value)}
+              onChange={(e) =>
+                handleExerciseChange(i, "exercise_name", e.target.value)
+              }
               required
             />
             <input
               type="number"
               placeholder="Duration (min)"
               value={ex.duration_min}
-              onChange={(e) => handleExerciseChange(i, "duration_min", e.target.value)}
+              onChange={(e) =>
+                handleExerciseChange(i, "duration_min", e.target.value)
+              }
               required
             />
             {i > 0 && (
@@ -131,7 +168,12 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
         <form className="modal-form" onSubmit={handleSubmit}>
           <label>
             Workout Name
-            <input type="text" name="name" placeholder="e.g. Leg Day" required />
+            <input
+              type="text"
+              name="name"
+              placeholder="e.g. Leg Day"
+              required
+            />
           </label>
 
           <label>
@@ -141,7 +183,15 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
               value={type}
               onChange={(e) => {
                 setType(e.target.value);
-                setExercises([{ exercise_name: "", sets: "", reps: "", weight_kg: "", duration_min: "" }]);
+                setExercises([
+                  {
+                    exercise_name: "",
+                    sets: "",
+                    reps: "",
+                    weight_kg: "",
+                    duration_min: "",
+                  },
+                ]);
               }}
               required
             >

@@ -3,7 +3,7 @@ import pool from "../db/db.js";
 
 const router = express.Router();
 
-// Get all workouts for a user
+// 🏋️ Get all workouts for a user
 router.get("/:userId", async (req, res) => {
   try {
     const result = await pool.query(
@@ -12,11 +12,12 @@ router.get("/:userId", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error fetching workouts:", err);
+    res.status(500).json({ error: "Failed to fetch workouts" });
   }
 });
 
-// Get workout details with exercises
+// 📋 Get a specific workout with exercises
 router.get("/details/:workoutId", async (req, res) => {
   try {
     const result = await pool.query(
@@ -26,25 +27,78 @@ router.get("/details/:workoutId", async (req, res) => {
        WHERE w.id = $1`,
       [req.params.workoutId]
     );
+
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error fetching workout details:", err);
+    res.status(500).json({ error: "Failed to fetch workout details" });
   }
 });
 
-// Add new workout (basic example)
+// ➕ Add new workout WITH exercises
 router.post("/", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const { user_id, type, name, date, duration_min, notes } = req.body;
-    const result = await pool.query(
+    const { user_id, type, name, date, duration_min, notes, exercises } = req.body;
+    console.log("📥 Incoming workout data:", req.body);
+
+    if (!user_id || !type || !name || !date) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    await client.query("BEGIN");
+
+    // 1️⃣ Insert workout
+    const workoutResult = await client.query(
       `INSERT INTO workouts (user_id, type, name, date, duration_min, notes)
        VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [user_id, type, name, date, duration_min, notes]
+       RETURNING id`,
+      [user_id, type, name, date, duration_min || null, notes || null]
     );
-    res.json(result.rows[0]);
+
+    const workoutId = workoutResult.rows[0].id;
+
+    // 2️⃣ Insert exercises (if provided)
+    if (exercises && exercises.length > 0) {
+      const insertExerciseQuery = `
+        INSERT INTO workout_exercises 
+          (workout_id, exercise_name, sets, reps, weight_kg, duration_min)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `;
+
+      for (const ex of exercises) {
+        await client.query(insertExerciseQuery, [
+          workoutId,
+          ex.exercise_name || null,
+          ex.sets || null,
+          ex.reps || null,
+          ex.weight_kg || null,
+          ex.duration_min || null,
+        ]);
+      }
+    }
+
+    await client.query("COMMIT");
+
+    // ✅ Return the created workout and exercises
+    const newWorkout = await pool.query(
+      `SELECT w.*, we.exercise_name, we.sets, we.reps, we.weight_kg, we.duration_min
+       FROM workouts w
+       LEFT JOIN workout_exercises we ON w.id = we.workout_id
+       WHERE w.id = $1`,
+      [workoutId]
+    );
+
+    res.status(201).json({
+      message: "Workout created successfully",
+      workout: newWorkout.rows,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    await client.query("ROLLBACK");
+    console.error("❌ Error adding workout:", err);
+    res.status(500).json({ error: "Failed to create workout" });
+  } finally {
+    client.release();
   }
 });
 

@@ -64,7 +64,7 @@ const Workout = () => {
 
   const handleAddWorkout = (newWorkout) => {
     console.log("✅ New Workout Added:", newWorkout);
-    // You can now call your backend POST API here to save the workout
+    setWorkouts((prev) => [newWorkout[0], ...prev]); // prepend new
   };
 
   if (loading) return <p>Loading workouts...</p>;
