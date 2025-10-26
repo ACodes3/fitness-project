@@ -9,7 +9,7 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
     { exercise_name: "", sets: "", reps: "", weight_kg: "", duration_min: "" },
   ]);
 
-  // ✅ Hooks always come before conditional returns
+  // Hooks always come before conditional returns
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -17,7 +17,7 @@ const Modal = ({ isOpen, onClose, onSubmit }) => {
     }
   }, [toast]);
 
-  // ✅ Safe conditional return (after hooks)
+  // Safe conditional return (after hooks)
   if (!isOpen) return null;
 
   const handleExerciseChange = (index, field, value) => {
