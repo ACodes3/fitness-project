@@ -13,8 +13,8 @@
 }
 
 .modal-content {
-  background: var(--card-bg, #fff);
-  color: var(--text-color, #222);
+  background: var(--card-bg);
+  color: var(--text-color) !important;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
@@ -58,7 +58,8 @@
   padding: 0.6rem;
   border-radius: 6px;
   border: 1px solid #ccc;
-  background: var(--bg, #f8f8f8);
+  background: var(--bg);
+  color: var(--text-color) !important;
 }
 
 .exercise-row input {
