@@ -21,10 +21,23 @@ router.get("/:userId", async (req, res) => {
 router.get("/details/:workoutId", async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT w.*, we.exercise_name, we.sets, we.reps, we.weight_kg, we.duration_min
-       FROM workouts w
-       LEFT JOIN workout_exercises we ON w.id = we.workout_id
-       WHERE w.id = $1`,
+      `SELECT 
+          w.id,
+          w.user_id,
+          w.type,
+          w.name,
+          w.date,
+          w.duration_min AS workout_duration_min,
+          w.notes,
+          we.exercise_name,
+          we.sets,
+          we.reps,
+          we.weight_kg,
+          we.duration_min AS exercise_duration_min
+        FROM workouts w
+        LEFT JOIN workout_exercises we ON w.id = we.workout_id
+        WHERE w.id = $1;
+        `,
       [req.params.workoutId]
     );
 
@@ -39,7 +52,8 @@ router.get("/details/:workoutId", async (req, res) => {
 router.post("/", async (req, res) => {
   const client = await pool.connect();
   try {
-    const { user_id, type, name, date, duration_min, notes, exercises } = req.body;
+    const { user_id, type, name, date, duration_min, notes, exercises } =
+      req.body;
     console.log("📥 Incoming workout data:", req.body);
 
     if (!user_id || !type || !name || !date) {
@@ -97,6 +111,64 @@ router.post("/", async (req, res) => {
     await client.query("ROLLBACK");
     console.error("❌ Error adding workout:", err);
     res.status(500).json({ error: "Failed to create workout" });
+  } finally {
+    client.release();
+  }
+});
+
+// 🛠️ Update workout by ID
+router.put("/:id", async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const workoutId = req.params.id;
+    const { name, type, date, duration_min, notes, exercises } = req.body;
+
+    if (!name || !type || !date) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    console.log("🛠️ Updating workout:", workoutId, req.body);
+
+    await client.query("BEGIN");
+
+    // 1️⃣ Update workout details
+    await client.query(
+      `UPDATE workouts
+       SET name = $1, type = $2, date = $3, duration_min = $4, notes = $5
+       WHERE id = $6`,
+      [name, type, date, duration_min || null, notes || null, workoutId]
+    );
+
+    // 2️⃣ Remove old exercises
+    await client.query(`DELETE FROM workout_exercises WHERE workout_id = $1`, [
+      workoutId,
+    ]);
+
+    // 3️⃣ Insert new exercises (if any)
+    if (Array.isArray(exercises) && exercises.length > 0) {
+      const insertQuery = `
+        INSERT INTO workout_exercises 
+          (workout_id, exercise_name, sets, reps, weight_kg, duration_min)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `;
+      for (const ex of exercises) {
+        await client.query(insertQuery, [
+          workoutId,
+          ex.exercise_name || null,
+          ex.sets || null,
+          ex.reps || null,
+          ex.weight_kg || null,
+          ex.duration_min || null,
+        ]);
+      }
+    }
+
+    await client.query("COMMIT");
+    res.json({ message: "Workout updated successfully" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Error updating workout:", err);
+    res.status(500).json({ error: err.message || "Failed to update workout" });
   } finally {
     client.release();
   }

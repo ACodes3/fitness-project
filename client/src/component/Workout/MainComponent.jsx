@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaEdit, FaEye, FaTrashAlt } from "react-icons/fa";
 import "../../assets/styles/workout.css";
+import EditModal from "../Modals/EditModal";
 import Modal from "../Modals/Modal";
 import ViewModal from "../Modals/ViewModal";
 
@@ -8,6 +9,8 @@ const Workout = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState(null);
   const [workouts, setWorkouts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -15,40 +18,40 @@ const Workout = () => {
   const itemsPerPage = 25;
 
   // Fetch workouts from backend
-  useEffect(() => {
-    const fetchWorkouts = async () => {
-      try {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        const token = localStorage.getItem("token");
+  const fetchWorkouts = async () => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const token = localStorage.getItem("token");
 
-        if (!storedUser || !token) {
-          window.location.href = "/login";
-          return;
-        }
-
-        const res = await fetch(
-          `http://localhost:5000/api/workouts/${storedUser.id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok)
-          throw new Error(data.message || "Failed to fetch workouts");
-
-        // Sort newest first
-        const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setWorkouts(sorted);
-      } catch (err) {
-        console.error("Error loading workouts:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      if (!storedUser || !token) {
+        window.location.href = "/login";
+        return;
       }
-    };
 
+      const res = await fetch(
+        `http://localhost:5000/api/workouts/${storedUser.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Failed to fetch workouts");
+
+      // Sort newest first
+      const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setWorkouts(sorted);
+      console.log("Fetched workout data:", data);
+    } catch (err) {
+      console.error("Error loading workouts:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchWorkouts();
   }, []);
 
@@ -65,7 +68,10 @@ const Workout = () => {
     setSelectedWorkout(id);
     setIsViewModalOpen(true);
   };
-  const handleEdit = (id) => console.log("Edit workout:", id);
+  const handleEdit = (id) => {
+    setEditingWorkout(id);
+    setIsEditModalOpen(true);
+  };
   const handleDelete = (id) => console.log("Delete workout:", id);
 
   const handleAddWorkout = (newWorkout) => {
@@ -144,6 +150,12 @@ const Workout = () => {
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         workoutId={selectedWorkout}
+      />
+      <EditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        workoutId={editingWorkout}
+        onUpdate={fetchWorkouts}
       />
 
       {/* Pagination Controls */}
