@@ -113,3 +113,56 @@
   right: 20px;
   z-index: 9999;
 }
+
+.step-indicator {
+  text-align: center;
+  color: #777;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+#goal {
+  width: 90%;
+  padding: 0.85rem;
+  border: 1px solid #cdd7d4;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #f9faf9;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#role{
+  width: 90%;
+  padding: 0.85rem;
+  border: 1px solid #cdd7d4;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #f9faf9;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #bbb;
+}

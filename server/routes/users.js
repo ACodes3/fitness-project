@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import express from "express";
 import jwt from "jsonwebtoken";
 import pool from "../db/db.js";
@@ -71,6 +72,60 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// POST /api/users/signup
+router.post("/signup", async (req, res) => {
+  const { name, email, password, location, role, weight_kg, height_cm, goal } =
+    req.body;
+
+  try {
+    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [
+      email,
+    ]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(password, salt);
+
+    // 🧩 Insert user with role + location
+    const userResult = await pool.query(
+      `INSERT INTO users (name, email, password_hash, role, location, joined_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
+       RETURNING id, name, email, role, location`,
+      [name, email, hashed, role || "Beginner", location || "Unknown"]
+    );
+
+    const user = userResult.rows[0];
+
+    const bmi =
+      weight_kg && height_cm
+        ? (weight_kg / ((height_cm / 100) * (height_cm / 100))).toFixed(1)
+        : null;
+
+    await pool.query(
+      `INSERT INTO fitness_profile (user_id, weight_kg, height_cm, goal, bmi, updated_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())`,
+      [user.id, weight_kg || null, height_cm || null, goal || null, bmi]
+    );
+
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET || "secret123",
+      { expiresIn: "2h" }
+    );
+
+    res.status(201).json({
+      message: "Signup successful",
+      token,
+      user,
+    });
+  } catch (err) {
+    console.error("Signup error:", err);
+    res.status(500).json({ error: "Failed to create account" });
   }
 });
 
