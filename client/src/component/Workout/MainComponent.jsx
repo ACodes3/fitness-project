@@ -5,6 +5,7 @@ import DeleteModal from "../Modals/DeleteModal";
 import EditModal from "../Modals/EditModal";
 import Modal from "../Modals/Modal";
 import ViewModal from "../Modals/ViewModal";
+import AddStepsModal from "../Modals/addStepsModal";
 
 const Workout = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,6 +15,7 @@ const Workout = () => {
   const [editingWorkout, setEditingWorkout] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingWorkout, setDeletingWorkout] = useState(null);
+  const [isAddStepsOpen, setIsAddStepsOpen] = useState(false);
   const [workouts, setWorkouts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ const Workout = () => {
           </button>
           <button
             className="add-workout-button"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsAddStepsOpen(true)}
           >
             Add Steps
           </button>
@@ -176,6 +178,11 @@ const Workout = () => {
         onClose={() => setIsDeleteModalOpen(false)}
         workoutId={deletingWorkout}
         onDelete={fetchWorkouts}
+      />
+      <AddStepsModal
+        isOpen={isAddStepsOpen}
+        onClose={() => setIsAddStepsOpen(false)}
+        onAdd={() => console.log("Steps added!")}
       />
 
       {/* Pagination Controls */}
