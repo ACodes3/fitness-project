@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import "../../assets/styles/profile.css";
+import Toast from "../Toast/Toast";
 
 const MainContent = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -21,20 +23,22 @@ const MainContent = () => {
         const res = await fetch(
           `http://localhost:5000/api/profile/${storedUser.id}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
         const data = await res.json();
-
         if (!res.ok) throw new Error(data.message || "Failed to fetch profile");
 
         setUser(data);
       } catch (err) {
         console.error(err);
         setError(err.message);
+        setToast({
+          type: "error",
+          title: "Load Failed",
+          message: err.message,
+        });
       } finally {
         setLoading(false);
       }
@@ -42,6 +46,14 @@ const MainContent = () => {
 
     fetchProfile();
   }, []);
+
+  // Auto-hide toast
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const calculateBMI = (weight, height) => {
     if (!weight || !height) return "-";
@@ -55,8 +67,9 @@ const MainContent = () => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("token");
+      const storedUser = JSON.parse(localStorage.getItem("user"));
       const res = await fetch(
-        `http://localhost:5000/api/profile/${user.id}`,
+        `http://localhost:5000/api/profile/${storedUser.id}`,
         {
           method: "PUT",
           headers: {
@@ -67,18 +80,31 @@ const MainContent = () => {
         }
       );
 
-      if (!res.ok) throw new Error("Failed to save profile");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save profile");
 
-      alert("Profile updated successfully!");
+      setToast({
+        type: "success",
+        title: "Profile Updated",
+        message: "Your profile has been saved successfully!",
+      });
+
       setIsEditing(false);
     } catch (err) {
-      alert(err.message);
+      setToast({
+        type: "error",
+        title: "Save Failed",
+        message: err.message,
+      });
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser((prev) => ({ ...prev, [name]: value }));
+    setUser((prev) => ({
+      ...prev,
+      [name]: name === "weight_kg" || name === "height_cm" ? Number(value) : value,
+    }));
   };
 
   const handleLogout = () => {
@@ -92,6 +118,12 @@ const MainContent = () => {
 
   return (
     <div className="profile-container">
+      {toast && (
+        <div className="toast-wrapper">
+          <Toast type={toast.type} title={toast.title} message={toast.message} />
+        </div>
+      )}
+
       {/* Header */}
       <div className="profile-header">
         <div className="avatar-wrapper">
@@ -101,7 +133,6 @@ const MainContent = () => {
             className="profile-avatar"
           />
         </div>
-
         <div>
           <h2>{user.name}</h2>
           <p>{user.role}</p>

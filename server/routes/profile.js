@@ -22,26 +22,52 @@ router.get("/:userId", verifyToken, async (req, res) => {
 });
 
 // Update profile info
-router.put("/:userId", async (req, res) => {
+// Update profile info
+router.put("/:userId", verifyToken, async (req, res) => {
+  const client = await pool.connect();
   try {
+    const userId = req.params.userId;
     const { name, email, role, location, weight_kg, height_cm, goal } =
       req.body;
 
-    await pool.query(
-      `UPDATE users SET name=$1, email=$2, role=$3, location=$4 WHERE id=$5`,
-      [name, email, role, location, req.params.userId]
+    await client.query("BEGIN");
+
+    // 🧠 Update user info
+    await client.query(
+      `UPDATE users 
+       SET name = $1, email = $2, role = $3, location = $4
+       WHERE id = $5`,
+      [name, email, role, location, userId]
     );
 
-    await pool.query(
-      `UPDATE fitness_profile
-       SET weight_kg=$1, height_cm=$2, goal=$3, updated_at=NOW()
-       WHERE user_id=$4`,
-      [weight_kg, height_cm, goal, req.params.userId]
+    // 🧮 Calculate BMI if possible
+    const bmi =
+      weight_kg && height_cm
+        ? Number((weight_kg / Math.pow(height_cm / 100, 2)).toFixed(1))
+        : null;
+
+    // 🧩 Insert or update fitness profile
+    await client.query(
+      `INSERT INTO fitness_profile (user_id, weight_kg, height_cm, goal, bmi, updated_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
+       ON CONFLICT (user_id)
+       DO UPDATE SET weight_kg = EXCLUDED.weight_kg,
+                     height_cm = EXCLUDED.height_cm,
+                     goal = EXCLUDED.goal,
+                     bmi = EXCLUDED.bmi,
+                     updated_at = NOW()`,
+      [userId, weight_kg || null, height_cm || null, goal || null, bmi]
     );
 
-    res.json({ success: true, message: "Profile updated" });
+    await client.query("COMMIT");
+
+    res.json({ success: true, message: "Profile updated successfully!" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    await client.query("ROLLBACK");
+    console.error("❌ Error updating profile:", err);
+    res.status(500).json({ error: "Failed to update profile" });
+  } finally {
+    client.release();
   }
 });
 
