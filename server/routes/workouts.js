@@ -174,4 +174,27 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// 🗑️ Delete a workout and its exercises
+router.delete("/:id", async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const workoutId = req.params.id;
+
+    await client.query("BEGIN");
+    await client.query(`DELETE FROM workout_exercises WHERE workout_id = $1`, [
+      workoutId,
+    ]);
+    await client.query(`DELETE FROM workouts WHERE id = $1`, [workoutId]);
+    await client.query("COMMIT");
+
+    res.json({ message: "Workout deleted successfully" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Error deleting workout:", err);
+    res.status(500).json({ error: "Failed to delete workout" });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;

@@ -107,7 +107,7 @@
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 1rem;
   margin-top: 1.5rem;
 }
@@ -202,4 +202,16 @@
   color: #d9534f;
   text-align: center;
   margin: 1rem 0;
+}
+
+.modal-content.small {
+  max-width: 400px;
+  text-align: center;
+}
+.btn.delete {
+  background-color: #d9534f;
+  color: white;
+}
+.btn.delete:hover {
+  background-color: #c9302c;
 }

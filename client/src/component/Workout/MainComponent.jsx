@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaEdit, FaEye, FaTrashAlt } from "react-icons/fa";
 import "../../assets/styles/workout.css";
+import DeleteModal from "../Modals/DeleteModal";
 import EditModal from "../Modals/EditModal";
 import Modal from "../Modals/Modal";
 import ViewModal from "../Modals/ViewModal";
@@ -11,6 +12,8 @@ const Workout = () => {
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingWorkout, setDeletingWorkout] = useState(null);
   const [workouts, setWorkouts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -72,7 +75,10 @@ const Workout = () => {
     setEditingWorkout(id);
     setIsEditModalOpen(true);
   };
-  const handleDelete = (id) => console.log("Delete workout:", id);
+  const handleDelete = (id) => {
+    setDeletingWorkout(id);
+    setIsDeleteModalOpen(true);
+  };
 
   const handleAddWorkout = (newWorkout) => {
     console.log("✅ New Workout Added:", newWorkout);
@@ -156,6 +162,12 @@ const Workout = () => {
         onClose={() => setIsEditModalOpen(false)}
         workoutId={editingWorkout}
         onUpdate={fetchWorkouts}
+      />
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        workoutId={deletingWorkout}
+        onDelete={fetchWorkouts}
       />
 
       {/* Pagination Controls */}
