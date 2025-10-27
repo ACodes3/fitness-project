@@ -75,7 +75,7 @@ const Signup = () => {
       });
 
       setTimeout(() => {
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       }, 1000);
     } catch (err) {
       console.error("Signup failed:", err);
