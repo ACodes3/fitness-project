@@ -92,12 +92,20 @@ const Workout = () => {
     <div className="workout-container">
       <div className="workout-header">
         <h2 className="workout-title">Latest Workouts</h2>
-        <button
-          className="add-workout-button"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Add Workout
-        </button>
+        <div className="workout-top-buttons">
+          <button
+            className="add-workout-button"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Add Workout
+          </button>
+          <button
+            className="add-workout-button"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Add Steps
+          </button>
+        </div>
       </div>
 
       <table className="workout-table">
