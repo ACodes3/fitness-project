@@ -32,8 +32,19 @@ router.get("/:userId", verifyToken, async (req, res) => {
 // Update settings
 router.put("/:userId", verifyToken, async (req, res) => {
   try {
-    const { theme, language, notifications } = req.body;
     const userId = Number(req.params.userId);
+    const { theme, language } = req.body;
+    let { notifications } = req.body;
+
+    // 🧩 Ensure notifications is parsed (avoid "invalid input syntax for type json")
+    if (typeof notifications === "string") {
+      notifications = JSON.parse(notifications);
+    }
+
+    // 🧩 Validate data
+    if (!theme || !language) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
 
     const upsert = await pool.query(
       `INSERT INTO settings (user_id, theme, language, notifications)
@@ -48,6 +59,7 @@ router.put("/:userId", verifyToken, async (req, res) => {
 
     res.json({ message: "Settings saved", settings: upsert.rows[0] });
   } catch (err) {
+    console.error("❌ Error updating settings:", err);
     res.status(500).json({ error: err.message });
   }
 });

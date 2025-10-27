@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "../../assets/styles/body.css";
 import "../../assets/styles/settings.css";
 import { applyTheme } from "../../utils/theme";
+import Toast from "../Toast/Toast"; // ✅ Import toast
 
 const MainComponent = () => {
   const [settings, setSettings] = useState({
@@ -12,8 +13,10 @@ const MainComponent = () => {
     emailAlerts: true,
     smsNotifications: false,
   });
+
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [toast, setToast] = useState(null); // ✅ Toast state
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -37,8 +40,6 @@ const MainComponent = () => {
         const data = await res.json();
 
         if (res.ok && data) {
-          console.log("Fetched settings:", data);
-
           setSettings({
             username: storedUser.name,
             email: storedUser.email,
@@ -61,9 +62,16 @@ const MainComponent = () => {
           });
 
           applyTheme(data.theme || "Light");
+        } else {
+          throw new Error(data.error || "Failed to fetch settings");
         }
       } catch (err) {
         console.error("Failed to load settings:", err);
+        setToast({
+          type: "error",
+          title: "Load Failed",
+          message: err.message || "Could not fetch settings",
+        });
       } finally {
         setLoading(false);
       }
@@ -71,6 +79,14 @@ const MainComponent = () => {
 
     fetchSettings();
   }, []);
+
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -110,11 +126,24 @@ const MainComponent = () => {
         }
       );
 
-      if (!res.ok) throw new Error("Failed to save settings");
-      alert("Settings updated successfully!");
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to save settings");
+
+      setToast({
+        type: "success",
+        title: "Settings Updated",
+        message: "Your preferences were saved successfully!",
+      });
+
       setIsEditing(false);
     } catch (err) {
-      alert(err.message);
+      console.error("Save failed:", err);
+      setToast({
+        type: "error",
+        title: "Save Failed",
+        message: err.message,
+      });
     }
   };
 
@@ -122,6 +151,13 @@ const MainComponent = () => {
 
   return (
     <div className="settings-container">
+      {/* ✅ Toast Display */}
+      {toast && (
+        <div className="toast-wrapper">
+          <Toast type={toast.type} title={toast.title} message={toast.message} />
+        </div>
+      )}
+
       <h2 className="settings-title">Settings</h2>
 
       {/* Account Settings */}
@@ -130,12 +166,7 @@ const MainComponent = () => {
         <div className="form-grid">
           <label>
             Username
-            <input
-              type="text"
-              name="username"
-              value={settings.username}
-              disabled
-            />
+            <input type="text" name="username" value={settings.username} disabled />
           </label>
           <label>
             Email
