@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { FaEdit, FaEye, FaTrashAlt } from "react-icons/fa";
 import "../../assets/styles/workout.css";
 import Modal from "../Modals/Modal";
+import ViewModal from "../Modals/ViewModal";
 
 const Workout = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [workouts, setWorkouts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -58,7 +61,10 @@ const Workout = () => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
-  const handleView = (id) => console.log("View details:", id);
+  const handleView = (id) => {
+    setSelectedWorkout(id);
+    setIsViewModalOpen(true);
+  };
   const handleEdit = (id) => console.log("Edit workout:", id);
   const handleDelete = (id) => console.log("Delete workout:", id);
 
@@ -128,11 +134,16 @@ const Workout = () => {
           ))}
         </tbody>
       </table>
-      {/* Modal */}
+      {/* Modals */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleAddWorkout}
+      />
+      <ViewModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        workoutId={selectedWorkout}
       />
 
       {/* Pagination Controls */}
