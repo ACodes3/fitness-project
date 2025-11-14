@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { FaEdit, FaEye, FaTrashAlt } from "react-icons/fa";
 import "../../assets/styles/workout.css";
+import AddStepsModal from "../Modals/AddStepsModal";
 import DeleteModal from "../Modals/DeleteModal";
 import EditModal from "../Modals/EditModal";
 import Modal from "../Modals/Modal";
 import ViewModal from "../Modals/ViewModal";
-import AddStepsModal from "../Modals/addStepsModal";
 
 const Workout = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
