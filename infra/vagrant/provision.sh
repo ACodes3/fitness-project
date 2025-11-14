@@ -13,7 +13,7 @@ apt-get install -y curl git nginx postgresql redis-server ufw build-essential
 # ------------------------------------
 # Install Node.js 18 LTS
 # ------------------------------------
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
 
 # ------------------------------------
