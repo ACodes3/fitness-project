@@ -35,7 +35,7 @@ if ! id -u fitness >/dev/null 2>&1; then
 fi
 usermod -aG vagrant fitness || true # Add 'fitness' user to 'vagrant' group for file access
 
-echo "=== Setting up PostgreSQL ===" # PostgreSQL setup for the application
+echo "=== Setting up PostgreSQL ==="
 # Configure PostgreSQL for app
 sudo -u postgres psql <<EOF
 CREATE USER fitness WITH PASSWORD 'fitness123';
@@ -57,7 +57,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO fitness;
 EOF
 
 echo "=== Installing Redis ==="
-# install redis 
+
 apt-get install -y redis-server 
 
 sed -i 's/^supervised .*/supervised systemd/' /etc/redis/redis.conf # Configure Redis to use systemd supervision
@@ -107,3 +107,25 @@ EOF
 
 chown fitness:vagrant /opt/fitness-project/server/.env # Set ownership for backend .env file
 chmod 640 /opt/fitness-project/server/.env # Set permissions for backend .env file
+
+
+# Create systemd backend service
+cat >/etc/systemd/system/fitness-backend.service <<'EOF'
+[Unit]
+Description=Fitness App Backend
+After=network.target postgresql.service redis-server.service
+
+[Service]
+WorkingDirectory=/opt/fitness-project/server
+ExecStart=/usr/bin/node server.js
+EnvironmentFile=/opt/fitness-project/server/.env
+User=fitness
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload # Reload systemd to recognize new service
+systemctl enable fitness-backend # Enable backend service to start on boot
+systemctl start fitness-backend # Start backend service
