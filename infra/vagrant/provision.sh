@@ -28,3 +28,26 @@ if ! id -u fitness >/dev/null 2>&1; then
     useradd --system --shell /usr/sbin/nologin fitness || true # Create system user 'fitness' without login shell
 fi
 usermod -aG vagrant fitness || true # Add 'fitness' user to 'vagrant' group for file access
+
+# ------------------------------------
+# Configure PostgreSQL for app
+# ------------------------------------
+echo "=== Setting up PostgreSQL ==="
+sudo -u postgres psql <<EOF
+CREATE USER fitness WITH PASSWORD 'fitness123';
+CREATE DATABASE fitnessdb;
+GRANT ALL PRIVILEGES ON DATABASE fitnessdb TO fitness;
+EOF
+
+# Apply SQL schema
+echo "=== Applying SQL schema ==="
+sudo -u postgres psql -d fitnessdb -f /opt/fitness-project/server/schema.sql # Load the database schema
+
+# Fix permissions after schema load
+echo "=== Granting DB permissions to fitness user ===" # Ensure 'fitness' user has necessary permissions
+sudo -u postgres psql -d fitnessdb <<EOF
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO fitness;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO fitness;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO fitness;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO fitness;
+EOF
