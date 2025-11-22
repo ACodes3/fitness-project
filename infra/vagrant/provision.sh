@@ -108,7 +108,7 @@ EOF
 chown fitness:vagrant /opt/fitness-project/server/.env # Set ownership for backend .env file
 chmod 640 /opt/fitness-project/server/.env # Set permissions for backend .env file
 
-
+echo "=== Creating systemd service ==="
 # Create systemd backend service
 cat >/etc/systemd/system/fitness-backend.service <<'EOF'
 [Unit]
@@ -129,3 +129,91 @@ EOF
 systemctl daemon-reload # Reload systemd to recognize new service
 systemctl enable fitness-backend # Enable backend service to start on boot
 systemctl start fitness-backend # Start backend service
+
+echo "=== Installing Certbot (Let's Encrypt) ==="
+apt-get install -y certbot python3-certbot-nginx # Install Certbot and Nginx plugin
+
+echo "=== Creating initial HTTP-only Nginx config ==="
+
+rm -f /etc/nginx/sites-enabled/default # Remove default Nginx site
+
+# Create Nginx site configuration for the fitness app
+# It serves the frontend and proxies API requests to the backend
+# It also includes a placeholder for Guacamole configuration
+cat >/etc/nginx/sites-available/fitness <<EOF
+server {
+    listen 80;
+    server_name $DOMAIN;
+
+    # Serve frontend files
+    root /var/www/fitness-client;
+    index index.html;
+
+    # Required for Let's Encrypt HTTP challenge
+    location /.well-known/acme-challenge/ {
+        root /var/www/fitness-client;
+    }
+
+    # API backend
+    location /api/ {
+        proxy_pass http://127.0.0.1:3001/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    }
+
+    # SPA frontend
+    location / {
+        try_files \$uri /index.html;
+    }
+
+    # GUACAMOLE BLOCK WILL BE INSERTED HERE
+}
+EOF
+
+# Enable the new Nginx site
+# Create symbolic link to enable the site
+# Test Nginx configuration and reload if successful
+ln -sf /etc/nginx/sites-available/fitness /etc/nginx/sites-enabled/fitness
+nginx -t && systemctl reload nginx
+
+echo "=== Requesting Let's Encrypt SSL certificate with fallback ==="
+
+CERTBOT_EMAIL="admin@${DOMAIN}"
+
+# Try requesting REAL certificate first
+if certbot --nginx \
+    -d "$DOMAIN" \
+    --non-interactive \
+    --agree-tos \
+    -m "$CERTBOT_EMAIL"; then
+
+    echo "=== Production certificate installed successfully ==="
+
+else
+    echo "=== Production certificate FAILED ==="
+
+    # Check for rate limit
+    # If rate limit detected, switch to STAGING certificates
+    # Check Certbot log for rate limit message
+    # If found, request staging certificates
+    if grep -q "too many certificates" /var/log/letsencrypt/letsencrypt.log 2>/dev/null; then
+        echo "=== Let's Encrypt RATE LIMIT detected — switching to STAGING certificates ==="
+
+        certbot --nginx \
+            --test-cert \
+            -d "$DOMAIN" \
+            --non-interactive \
+            --agree-tos \
+            -m "$CERTBOT_EMAIL" || echo "=== Staging certificate FAILED as well ==="
+
+    else
+        echo "=== Certbot failed for a non-rate-limit reason. Continuing deployment. ==="
+    fi
+fi
+
+echo "=== Setting up Certbot auto-renew ==="
+# Enable and start Certbot timer for automatic certificate renewal
+systemctl enable certbot.timer
+systemctl start certbot.timer
