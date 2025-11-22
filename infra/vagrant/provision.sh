@@ -217,3 +217,19 @@ echo "=== Setting up Certbot auto-renew ==="
 # Enable and start Certbot timer for automatic certificate renewal
 systemctl enable certbot.timer
 systemctl start certbot.timer
+
+
+# Firewall
+ufw allow OpenSSH # Allow SSH
+ufw allow 80 # Allow HTTP
+ufw allow 443 # Allow HTTPS
+ufw --force enable # Enable UFW firewall
+
+# guacamole                          
+apt-get update -y # Update package lists
+apt-get install -y tomcat9 # Install Tomcat9 for Guacamole web app
+
+apt-get install -y libcairo2-dev libjpeg-turbo8-dev libpng-dev \
+    libtool-bin libossp-uuid-dev freerdp2-dev libpango1.0-dev \
+    libssh2-1-dev libtelnet-dev libvncserver-dev libpulse-dev \
+    libssl-dev libvorbis-dev libwebp-dev # Install Guacamole dependencies
