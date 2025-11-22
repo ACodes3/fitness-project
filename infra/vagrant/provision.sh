@@ -1,26 +1,31 @@
 #!/usr/bin/env bash
-
-set -e                          #exit immediately if any command returns a non-zero (error) code.
-VM_HOSTNAME=$(hostname)         # Get the hostname of the VM
-DOMAIN="${VM_HOSTNAME}.lrk.si"  # Construct the domain name using the hostname
+set -e #exit immediately if any command returns a non-zero (error) code.
+VM_HOSTNAME=$(hostname) # Get the hostname of the VM
+DOMAIN="${VM_HOSTNAME}.lrk.si" # Construct the domain name using the hostname
+echo "Using domain: $DOMAIN" # Print the domain being used
 export DEBIAN_FRONTEND=noninteractive # prevent some packages from prompting for user input during installation
 
 echo "=== Updating system ==="
+apt-get update -y # Update package lists
+apt-get upgrade -y # upgrade installed packages to latest versions
 
-apt-get update -y 
-apt-get upgrade -y 
-
+# ------------------------------------
+# Install core packages
+# ------------------------------------
 echo "=== Installing core packages ==="
-# core packages
-apt-get install -y curl git nginx postgresql ufw build-essential 
+apt-get install -y curl git nginx postgresql ufw build-essential # Core packages installation
 
-echo "=== Installing Node.js 20 ==="
+# ------------------------------------
 # Install Node.js 20 LTS
+# ------------------------------------
+echo "=== Installing Node.js 20 ==="
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash - # Add NodeSource APT repository for Node.js 20
-apt-get install -y nodejs 
+apt-get install -y nodejs # Install Node.js
 
-echo "=== Cloning project repo ==="
+# ------------------------------------
 # Clone project into /opt
+# ------------------------------------
+echo "=== Cloning project repo ==="
 rm -rf /opt/fitness-project # Remove existing project directory if it exists
 git clone https://github.com/ACodes3/fitness-project.git /opt/fitness-project # Clone the project repository
 
@@ -28,23 +33,28 @@ git clone https://github.com/ACodes3/fitness-project.git /opt/fitness-project # 
 chown -R vagrant:vagrant /opt/fitness-project # Change ownership to vagrant user to allow npm installs
 chmod -R 755 /opt/fitness-project # Set directory permissions to allow read and execute access
 
-echo "=== Creating fitness system user ==="
+# ------------------------------------
 # Create system user for backend service
+# ------------------------------------
+# Create a dedicated system user 'fitness' for running the backend service
+echo "=== Creating fitness system user ==="
 if ! id -u fitness >/dev/null 2>&1; then
     useradd --system --shell /usr/sbin/nologin fitness || true # Create system user 'fitness' without login shell
 fi
 usermod -aG vagrant fitness || true # Add 'fitness' user to 'vagrant' group for file access
 
-echo "=== Setting up PostgreSQL ==="
+# ------------------------------------
 # Configure PostgreSQL for app
+# ------------------------------------
+echo "=== Setting up PostgreSQL ===" # PostgreSQL setup for the application
 sudo -u postgres psql <<EOF
 CREATE USER fitness WITH PASSWORD 'fitness123';
 CREATE DATABASE fitnessdb;
 GRANT ALL PRIVILEGES ON DATABASE fitnessdb TO fitness;
 EOF
 
-echo "=== Applying SQL schema ==="
 # Apply SQL schema
+echo "=== Applying SQL schema ==="
 sudo -u postgres psql -d fitnessdb -f /opt/fitness-project/server/schema.sql # Load the database schema
 
 # Fix permissions after schema load
@@ -56,22 +66,31 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO fitness;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO fitness;
 EOF
 
+###############################################################################
+#                               INSTALL REDIS
+###############################################################################
 echo "=== Installing Redis ==="
+apt-get install -y redis-server # Install Redis server
 
-apt-get install -y redis-server 
-
+echo "=== Configuring Redis ==="
 sed -i 's/^supervised .*/supervised systemd/' /etc/redis/redis.conf # Configure Redis to use systemd supervision
 sed -i 's/^# maxmemory <bytes>/maxmemory 256mb/' /etc/redis/redis.conf # Set max memory to 256MB
 sed -i 's/^# maxmemory-policy .*/maxmemory-policy allkeys-lru/' /etc/redis/redis.conf # Set eviction policy to allkeys-lru
 
-systemctl enable redis-server 
-systemctl restart redis-server 
+systemctl enable redis-server # Enable Redis to start on boot
+systemctl restart redis-server # Restart Redis to apply configuration changes
 
 echo "=== Redis installed and running ==="
 
+# ------------------------------------
+# Install backend dependencies
+# ------------------------------------
 echo "=== Installing backend dependencies ==="
 sudo -u vagrant -H bash -lc "cd /opt/fitness-project/server && npm install" # Install backend Node.js dependencies
 
+# ------------------------------------
+# Build frontend
+# ------------------------------------
 echo "=== Setting frontend environment ===" # Create frontend .env.production file
 
 # Create frontend .env.production file with API URL
@@ -91,6 +110,9 @@ mkdir -p /var/www/fitness-client # Create directory for Nginx to serve frontend
 cp -a /opt/fitness-project/client/dist/. /var/www/fitness-client/ # Copy built frontend files to Nginx directory
 chown -R www-data:www-data /var/www/fitness-client # Set ownership for Nginx to access frontend files
 
+# ------------------------------------
+# Create backend .env file
+# ------------------------------------
 echo "=== Creating backend .env ===" # Create backend .env file with database and Redis configuration
 cat >/opt/fitness-project/server/.env <<'EOF'
 PORT=3001
@@ -108,8 +130,14 @@ EOF
 chown fitness:vagrant /opt/fitness-project/server/.env # Set ownership for backend .env file
 chmod 640 /opt/fitness-project/server/.env # Set permissions for backend .env file
 
-echo "=== Creating systemd service ==="
+# ------------------------------------
 # Create systemd backend service
+# ------------------------------------
+echo "=== Creating systemd service ==="
+# Create systemd service file for the fitness backend
+# The service runs as the 'fitness' user and uses the .env file for configuration
+# It will restart automatically if it crashes
+# ------------------------------------ 
 cat >/etc/systemd/system/fitness-backend.service <<'EOF'
 [Unit]
 Description=Fitness App Backend
@@ -129,6 +157,10 @@ EOF
 systemctl daemon-reload # Reload systemd to recognize new service
 systemctl enable fitness-backend # Enable backend service to start on boot
 systemctl start fitness-backend # Start backend service
+
+###############################################################################
+#                             INSTALL LET'S ENCRYPT
+###############################################################################
 
 echo "=== Installing Certbot (Let's Encrypt) ==="
 apt-get install -y certbot python3-certbot-nginx # Install Certbot and Nginx plugin
@@ -178,8 +210,15 @@ EOF
 ln -sf /etc/nginx/sites-available/fitness /etc/nginx/sites-enabled/fitness
 nginx -t && systemctl reload nginx
 
-echo "=== Requesting Let's Encrypt SSL certificate with fallback ==="
+###############################################################################
+#                       IMPROVED CERTBOT WITH STAGING FALLBACK
+###############################################################################
 
+echo "=== Requesting Let's Encrypt SSL certificate ==="
+# Try to obtain a real SSL certificate from Let's Encrypt
+# If rate limited, fall back to staging certificates
+# Set Certbot email
+# Used for important account notifications
 CERTBOT_EMAIL="admin@${DOMAIN}"
 
 # Try requesting REAL certificate first
@@ -215,19 +254,27 @@ fi
 
 echo "=== Setting up Certbot auto-renew ==="
 # Enable and start Certbot timer for automatic certificate renewal
+# This will check for expiring certificates twice daily
 systemctl enable certbot.timer
 systemctl start certbot.timer
 
-
-echo "=== Configuring UFW firewall ==="
+# ------------------------------------
 # Firewall
+# ------------------------------------
+echo "=== Configuring UFW firewall ==="
 ufw allow OpenSSH # Allow SSH
 ufw allow 80 # Allow HTTP
 ufw allow 443 # Allow HTTPS
 ufw --force enable # Enable UFW firewall
 
+echo "=== Core app provisioning complete with Let's Encrypt HTTPS! ==="
+
+
+###############################################################################
+#                             APACHE GUACAMOLE                                 
+###############################################################################
+
 echo "=== Installing Apache Guacamole ==="
-# guacamole                          
 apt-get update -y # Update package lists
 apt-get install -y tomcat9 # Install Tomcat9 for Guacamole web app
 
@@ -309,6 +356,10 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO guacuser;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO guacuser;
 EOF
 
+###############################################################################
+#                       ADD DEFAULT RDP CONNECTION                           
+###############################################################################
+
 echo "=== Adding default RDP connection to Guacamole ===" # Insert default RDP connection for localhost into Guacamole database
 # This allows users to connect to the local desktop via Guacamole
 # The connection is named 'Desktop' and uses RDP protocol
@@ -353,6 +404,10 @@ chmod -R 755 /etc/guacamole # Set permissions to 755
 echo "=== Restarting Tomcat ==="
 systemctl restart tomcat9 # Restart Tomcat to apply Guacamole configuration
 
+###############################################################################
+#                             INSTALL GUI + XRDP                              
+###############################################################################
+
 echo "=== Installing XFCE Desktop & XRDP ==="
 apt-get install -y xfce4 xfce4-goodies xrdp # Install XFCE desktop environment and XRDP
 systemctl enable xrdp # Enable XRDP to start on boot
@@ -361,6 +416,10 @@ systemctl restart xrdp # Restart XRDP to apply changes
 # Make XRDP use XFCE by default
 echo xfce4-session > /home/vagrant/.xsession # Set XFCE as the default session for XRDP
 chown vagrant:vagrant /home/vagrant/.xsession # Change ownership to vagrant user and group
+
+###############################################################################
+#              INSERT GUACAMOLE NGINX BLOCK IN CORRECT POSITION               #
+###############################################################################
 
 echo "=== Inserting Guacamole block into nginx ===" # Insert Guacamole location block into Nginx configuration
 
@@ -388,5 +447,4 @@ nginx -t && systemctl reload nginx # Test Nginx configuration and reload if succ
 echo "=== Guacamole installation complete ==="
 echo "Visit: https://${DOMAIN}/guacamole" # Provide Guacamole access URL
 echo "Login: guacadmin / guacadmin" # Provide Guacamole default login credentials
-
-echo "=== Provisioning complete! ==="
+###############################################################################
