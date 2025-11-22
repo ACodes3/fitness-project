@@ -219,12 +219,14 @@ systemctl enable certbot.timer
 systemctl start certbot.timer
 
 
+echo "=== Configuring UFW firewall ==="
 # Firewall
 ufw allow OpenSSH # Allow SSH
 ufw allow 80 # Allow HTTP
 ufw allow 443 # Allow HTTPS
 ufw --force enable # Enable UFW firewall
 
+echo "=== Installing Apache Guacamole ==="
 # guacamole                          
 apt-get update -y # Update package lists
 apt-get install -y tomcat9 # Install Tomcat9 for Guacamole web app
@@ -233,3 +235,158 @@ apt-get install -y libcairo2-dev libjpeg-turbo8-dev libpng-dev \
     libtool-bin libossp-uuid-dev freerdp2-dev libpango1.0-dev \
     libssh2-1-dev libtelnet-dev libvncserver-dev libpulse-dev \
     libssl-dev libvorbis-dev libwebp-dev # Install Guacamole dependencies
+
+echo "=== Installing guacd backend ==="
+cd /usr/src # Change to source directory
+curl -L -O https://archive.apache.org/dist/guacamole/1.5.5/source/guacamole-server-1.5.5.tar.gz # Download Guacamole server source
+tar -xzf guacamole-server-1.5.5.tar.gz # Extract source archive
+cd guacamole-server-1.5.5 # Change to Guacamole server source directory
+./configure --with-init-dir=/etc/init.d # Configure build with init script directory
+make -j$(nproc) # Build Guacamole server
+make install # Install Guacamole server
+ldconfig # Update shared library cache
+systemctl enable guacd # Enable guacd service
+systemctl start guacd # Start guacd service
+
+echo "=== Installing Guacamole web app ==="
+mkdir -p /etc/guacamole # Create Guacamole configuration directory
+curl -L -o /etc/guacamole/guacamole.war \
+  https://archive.apache.org/dist/guacamole/1.5.5/binary/guacamole-1.5.5.war # Download Guacamole web application
+ln -sf /etc/guacamole/guacamole.war /var/lib/tomcat9/webapps/guacamole.war # Link Guacamole web app to Tomcat webapps directory
+
+echo "=== Writing guacamole.properties ==="
+# Create Guacamole properties file for PostgreSQL authentication
+# It configures guacd connection and PostgreSQL database details
+cat >/etc/guacamole/guacamole.properties <<'EOF'
+guacd-hostname: localhost
+guacd-port: 4822
+
+auth-provider: net.sourceforge.guacamole.net.auth.postgresql.PostgreSQLAuthenticationProvider
+postgresql-hostname: localhost
+postgresql-port: 5432
+postgresql-database: guacdb
+postgresql-username: guacuser
+postgresql-password: guacpass
+EOF
+
+echo "=== Setting up Guacamole PostgreSQL database ==="
+# Create Guacamole database user and database
+# Grant all privileges on the database to the user
+# This user will be used by Guacamole to connect to the database
+sudo -u postgres psql <<EOF
+CREATE USER guacuser WITH PASSWORD 'guacpass';
+CREATE DATABASE guacdb;
+GRANT ALL PRIVILEGES ON DATABASE guacdb TO guacuser;
+EOF
+
+cd /usr/src # Change to source directory
+
+echo "=== Downloading Guacamole JDBC authentication extension ==="
+# Download Guacamole JDBC authentication extension for PostgreSQL
+curl -L -O https://archive.apache.org/dist/guacamole/1.5.5/binary/guacamole-auth-jdbc-1.5.5.tar.gz
+
+echo "=== Extracting JDBC authentication package ==="
+# Extract the JDBC authentication extension package
+tar -xzf guacamole-auth-jdbc-1.5.5.tar.gz
+
+echo "=== Importing Guacamole SQL schema ==="
+# Import Guacamole database schema and create default admin user
+# This sets up the necessary tables and an initial admin account
+# in the Guacamole database
+# The default admin username is 'guacadmin' with password 'guacadmin'
+# These should be changed after first login
+# for security reasons
+sudo -u postgres psql -d guacdb -f /usr/src/guacamole-auth-jdbc-1.5.5/postgresql/schema/001-create-schema.sql
+sudo -u postgres psql -d guacdb -f /usr/src/guacamole-auth-jdbc-1.5.5/postgresql/schema/002-create-admin-user.sql
+
+echo "=== Fixing Guacamole PostgreSQL permissions for guacuser ==="
+# Ensure 'guacuser' has necessary permissions on Guacamole database objects
+# This allows Guacamole to function properly with the database
+sudo -u postgres psql -d guacdb <<EOF
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO guacuser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO guacuser;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO guacuser;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO guacuser;
+EOF
+
+echo "=== Adding default RDP connection to Guacamole ===" # Insert default RDP connection for localhost into Guacamole database
+# This allows users to connect to the local desktop via Guacamole
+# The connection is named 'Desktop' and uses RDP protocol
+# It connects to 'localhost' on port 3389
+# The default admin user 'guacadmin' is granted READ permission on this connection
+sudo -u postgres psql -d guacdb <<EOF
+INSERT INTO guacamole_connection (connection_name, protocol)
+VALUES ('Desktop', 'rdp');
+
+INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+VALUES ((SELECT connection_id FROM guacamole_connection WHERE connection_name='Desktop'),
+        'hostname', 'localhost');
+
+INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+VALUES ((SELECT connection_id FROM guacamole_connection WHERE connection_name='Desktop'),
+        'port', '3389');
+
+INSERT INTO guacamole_connection_permission (entity_id, connection_id, permission)
+VALUES (
+    (SELECT entity_id FROM guacamole_entity WHERE name='guacadmin'),
+    (SELECT connection_id FROM guacamole_connection WHERE connection_name='Desktop'),
+    'READ'
+);
+EOF
+
+mkdir -p /etc/guacamole/extensions # Create Guacamole extensions directory
+# Copy JDBC authentication extension to Guacamole extensions directory
+cp /usr/src/guacamole-auth-jdbc-1.5.5/postgresql/guacamole-auth-jdbc-postgresql-1.5.5.jar \
+   /etc/guacamole/extensions/
+
+echo "=== Installing PostgreSQL JDBC Driver ==="
+apt-get install -y libpostgresql-jdbc-java # Install PostgreSQL JDBC driver
+
+echo "=== Copying JDBC driver to Guacamole lib directory ==="
+mkdir -p /etc/guacamole/lib # Create Guacamole lib directory
+cp /usr/share/java/postgresql.jar /etc/guacamole/lib/ # Copy PostgreSQL JDBC driver to Guacamole lib directory
+
+echo "=== Fixing permissions for Guacamole ==="
+chown -R tomcat:tomcat /etc/guacamole # Change ownership to tomcat user and group
+chmod -R 755 /etc/guacamole # Set permissions to 755
+
+echo "=== Restarting Tomcat ==="
+systemctl restart tomcat9 # Restart Tomcat to apply Guacamole configuration
+
+echo "=== Installing XFCE Desktop & XRDP ==="
+apt-get install -y xfce4 xfce4-goodies xrdp # Install XFCE desktop environment and XRDP
+systemctl enable xrdp # Enable XRDP to start on boot
+systemctl restart xrdp # Restart XRDP to apply changes
+
+# Make XRDP use XFCE by default
+echo xfce4-session > /home/vagrant/.xsession # Set XFCE as the default session for XRDP
+chown vagrant:vagrant /home/vagrant/.xsession # Change ownership to vagrant user and group
+
+echo "=== Inserting Guacamole block into nginx ===" # Insert Guacamole location block into Nginx configuration
+
+# Insert Guacamole location block before the closing brace in the Nginx site configuration
+# The block proxies /guacamole/ requests to the Guacamole web application
+# It sets necessary headers for proper operation
+# This allows access to Guacamole via Nginx at /guacamole/
+# e.g. https://yourdomain/guacamole/
+# The block is inserted at the placeholder comment in the configuration file
+sed -i '/# GUACAMOLE BLOCK WILL BE INSERTED HERE/a \
+    location /guacamole/ {\n\
+        proxy_pass http://127.0.0.1:8080/guacamole/;\n\
+        proxy_set_header Host $host;\n\
+        proxy_set_header X-Real-IP $remote_addr;\n\
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\
+        proxy_set_header Upgrade $http_upgrade;\n\
+        proxy_set_header Connection $http_connection;\n\
+        proxy_http_version 1.1;\n\
+        proxy_buffering off;\n\
+        proxy_request_buffering off;\n\
+    }\n' /etc/nginx/sites-available/fitness
+
+nginx -t && systemctl reload nginx # Test Nginx configuration and reload if successful
+
+echo "=== Guacamole installation complete ==="
+echo "Visit: https://${DOMAIN}/guacamole" # Provide Guacamole access URL
+echo "Login: guacadmin / guacadmin" # Provide Guacamole default login credentials
+
+echo "=== Provisioning complete! ==="
