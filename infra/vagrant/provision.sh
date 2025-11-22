@@ -29,10 +29,7 @@ if ! id -u fitness >/dev/null 2>&1; then
 fi
 usermod -aG vagrant fitness || true # Add 'fitness' user to 'vagrant' group for file access
 
-# ------------------------------------
 # Configure PostgreSQL for app
-# ------------------------------------
-echo "=== Setting up PostgreSQL ==="
 sudo -u postgres psql <<EOF
 CREATE USER fitness WITH PASSWORD 'fitness123';
 CREATE DATABASE fitnessdb;
@@ -40,7 +37,6 @@ GRANT ALL PRIVILEGES ON DATABASE fitnessdb TO fitness;
 EOF
 
 # Apply SQL schema
-echo "=== Applying SQL schema ==="
 sudo -u postgres psql -d fitnessdb -f /opt/fitness-project/server/schema.sql # Load the database schema
 
 # Fix permissions after schema load
@@ -51,3 +47,13 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO fitness;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO fitness;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO fitness;
 EOF
+
+# install redis 
+apt-get install -y redis-server 
+
+sed -i 's/^supervised .*/supervised systemd/' /etc/redis/redis.conf # Configure Redis to use systemd supervision
+sed -i 's/^# maxmemory <bytes>/maxmemory 256mb/' /etc/redis/redis.conf # Set max memory to 256MB
+sed -i 's/^# maxmemory-policy .*/maxmemory-policy allkeys-lru/' /etc/redis/redis.conf # Set eviction policy to allkeys-lru
+
+systemctl enable redis-server 
+systemctl restart redis-server 
