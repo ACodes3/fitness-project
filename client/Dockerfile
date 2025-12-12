@@ -1,13 +1,19 @@
+# node alpine da je manjsi image
 FROM node:20-alpine AS builder
 WORKDIR /client
 
+# Kopiramo package.json in package-lock.json 
 COPY package*.json .
 RUN npm install      
 
+# Kopiramo ostale fajle
 COPY . .         
 
-RUN npm run build   # nastane client/dist
+# Buildamo aplikacijo
+RUN npm run build  
 
-FROM nginx:alpine   #vzamemo mejhn image k zna servirat stat. fajle
-COPY --from=builder /client/dist /usr/share/nginx/html # kopiramo zbuildane fajle v nginx folder
+# 2nd stage - Nginx server za serviranje statičnih fajlov
+FROM nginx:alpine   
+# Kopiramo buildane fajle iz prejšnjega stage-a v Nginx folder 
+COPY --from=builder /client/dist /usr/share/nginx/html 
 EXPOSE 80 
