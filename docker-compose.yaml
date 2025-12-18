@@ -31,7 +31,7 @@ services:
       - backend
 
   redis:
-   image: redis:7
+   image: redis:7-alpine
 
   proxy:
     image: nginx:1.26-alpine
@@ -60,7 +60,7 @@ services:
     image: certbot/certbot:latest
     volumes:
       - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt:
+      - ./certbot/conf:/etc/letsencrypt
 
 volumes:
   db_data:
