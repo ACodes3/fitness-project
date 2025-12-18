@@ -14,6 +14,9 @@ RUN npm run build
 
 # 2nd stage - Nginx server za serviranje statičnih fajlov
 FROM nginx:alpine   
+
 # Kopiramo buildane fajle iz prejšnjega stage-a v Nginx folder 
 COPY --from=builder /client/dist /usr/share/nginx/html 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80 
