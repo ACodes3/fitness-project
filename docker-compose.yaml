@@ -45,7 +45,17 @@ services:
     depends_on:
       - frontend
       - backend 
-
+    entrypoint: /bin/sh -c '
+      if [ ! -f /etc/letsencrypt/live/devops-vm-30.lrk.si/fullchain.pem ]; then
+        mkdir -p /etc/letsencrypt/live/devops-vm-30.lrk.si;
+        apk add --no-cache openssl >/dev/null 2>&1 || true;
+        openssl req -x509 -nodes -newkey rsa:2048 -days 1
+          -keyout /etc/letsencrypt/live/devops-vm-30.lrk.si/privkey.pem
+          -out /etc/letsencrypt/live/devops-vm-30.lrk.si/fullchain.pem
+          -subj "/CN=devops-vm-30.lrk.si";
+      fi;
+      nginx -g "daemon off;"; '
+      
   certbot:
     image: certbot/certbot:latest
     volumes:
