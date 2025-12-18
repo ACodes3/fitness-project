@@ -37,8 +37,8 @@ jobs:
           context: ./server
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/fitness-backend:latest
-            ghcr.io/${{ github.repository_owner }}/fitness-backend:${{ github.sha }}
+            ghcr.io/acodes3/fitness-backend:latest
+            ghcr.io/acodes3/fitness-backend:${{ github.sha }}
 
       - name: Build & push frontend image
         uses: docker/build-push-action@v6
@@ -46,5 +46,5 @@ jobs:
           context: ./client
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/fitness-frontend:latest
-            ghcr.io/${{ github.repository_owner }}/fitness-frontend:${{ github.sha }}
+            ghcr.io/acodes3/fitness-frontend:latest
+            ghcr.io/acodes3/fitness-frontend:${{ github.sha }}
