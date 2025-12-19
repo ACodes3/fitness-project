@@ -296,8 +296,8 @@ JWT_SECRET=change_me_to_a_strong_secret
 docker compose run --rm certbot certonly \
   --staging \
   --webroot -w /var/www/certbot \
-  -d devops-vm-30.lrk.si \
-  --email evaluna.mu@gmail.com \
+  -d YOUR_DOMAIN \
+  --email YOUR_EMAIL \
   --agree-tos --no-eff-email
 ```
 
