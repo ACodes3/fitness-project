@@ -5,8 +5,8 @@ The project consists of a React (Vite) single-page application and a Node.js (Ex
 
 This repository also demonstrates multiple deployment approaches:
 
-- VM provisioning using Vagrant / cloud-init 
-- Containerized deployment using Docker Compose, TLS, and CI/CD 
+- VM provisioning using Vagrant and Cloud-init 
+- Containerized deployment using Docker Compose
 
 ---
 
@@ -34,11 +34,11 @@ This repository also demonstrates multiple deployment approaches:
 ## Repository layout
 
 ```
-client/        # React frontend (multi-stage Docker build)
+client/        # React frontend
 server/        # Express backend API
-nginx/         # Nginx reverse proxy configuration
-infra/         # Vagrant & cloud-init provisioning 
-certbot/       # TLS certificates and ACME challenge data
+nginx/         # Nginx reverse proxy configuration (for Docker)
+infra/         # Vagrant & Cloud-init provisioning 
+certbot/       # TLS certificates and ACME challenge data (for Docker)
 ```
 
 ---
@@ -67,7 +67,7 @@ npm install
 2) Create environment file for backend:
 
 ```
-server/.env
+nano server/.env
 ```
 
 Example:
@@ -116,28 +116,23 @@ This section describes deployment using Vagrant on a Linux host (e.g. Ubuntu).
 ```
 sudo apt update
 sudo apt install -y virtualbox git
-```
-
-2. Install vagrant:
-
-```
 sudo apt install -y vagrant
 ```
 
-3. Clone the repo:
+2. Clone the repo:
 
 ```
 git clone https://github.com/ACodes3/fitness-project.git
 cd fitness-project/infra/vagrant
 ```
 
-4. Start the VM with vagrant:
+3. Start the VM with vagrant:
 
 ```
 vagrant up
 ```
 
-5. Wait until the provisioning is finished. You will be then able to visit the deployed link.
+4. Wait until the provisioning is finished. You will be then able to visit the deployed link.
 
  Link to the deployment video: (https://drive.google.com/file/d/1BrEpeRqYZeISf-I7-LidWV-EW6P73NAm/view?usp=sharing)
 
@@ -188,7 +183,7 @@ chmod +x deploy.sh
 
 ## Containerized deployment with Docker Compose
 
-This section describes the container-based deployment. The entire application stack is deployed using Docker Compose and consists of multiple services connected via an internal Docker network. TLS is terminated at the Nginx reverse proxy.
+This section describes the container-based deployment. The entire application stack is deployed using Docker Compose and consists of multiple services connected via an internal Docker network.
 
 ### Prerequisites
 
@@ -205,16 +200,36 @@ git clone https://github.com/ACodes3/fitness-project.git
 cd fitness-project
 ```
 
-2. Create a .env file on the VM. You can copy the example:
+2. Create environment file on the VM 
 
 ```
-cp .env.example .env
 nano .env
 ```
 
-Fill in your own values (DB password, JWT secret, etc.).
+Example:
 
-3. Development/testing (staging)
+```
+# Database
+POSTGRES_USER=dev
+POSTGRES_PASSWORD=change_me
+POSTGRES_DB=fitnessdb
+
+# Backend
+DB_HOST=db
+DB_PORT=5432
+DB_USER=${POSTGRES_USER}
+DB_PASS=${POSTGRES_PASSWORD}
+DB_NAME=${POSTGRES_DB}
+
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+# Security
+JWT_SECRET=change_me_to_a_strong_secret
+```
+
+3. Run Docker Compose up (development/testing) (staging cert.)
 
 ```
 docker compose run --rm certbot certonly \
@@ -225,12 +240,10 @@ docker compose run --rm certbot certonly \
   --agree-tos --no-eff-email
 ```
 
-2. Reload ngix:
+Run the same command without --staging for production certificate.
+
+4. Reload ngix:
 
 ```
 docker exec $(docker ps -qf name=proxy) nginx -s reload
 ```
-
-3. Production certificate (final):
-
-Run the same command without --staging, then reload Nginx again.
