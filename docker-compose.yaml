@@ -1,4 +1,6 @@
+# Define all services that make up the fitness application
 services:
+  # PostgreSQL database service - stores user data, workouts, and steps
   db:
     image: postgres:16
     env_file:
@@ -8,14 +10,18 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
+      # Persist database data across container restarts
       - db_data:/var/lib/postgresql/data
+      # Initialize database with schema on first run
       - ./server/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
+  # Node.js backend API server - handles business logic and database queries
   backend:
     build: ./server
     env_file:
       - .env
     depends_on:
+      # Wait for database and cache to be ready
       - db
       - redis
     environment:
@@ -29,29 +35,39 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       JWT_SECRET: ${JWT_SECRET}
 
+  # React frontend application - user interface for the fitness app
   frontend:
     build: ./client
     depends_on:
+      # Wait for backend API to be ready
       - backend
 
+  # Redis cache service - improves performance and session management
   redis:
     image: redis:7-alpine
 
+  # Nginx reverse proxy - routes traffic and serves static files
   proxy:
     image: nginx:1.26-alpine
     env_file:
       - .env
     ports:
+      # Expose HTTP and HTTPS ports to the host machine
       - "80:80"
       - "443:443"
     volumes:
+      # Load nginx configuration template
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf.src
+      # SSL certificate validation directory for Let's Encrypt
       - ./certbot/www:/var/www/certbot
+      # SSL certificates directory
       - ./certbot/conf:/etc/letsencrypt
     depends_on:
+      # Proxy routes to these services
       - frontend
       - backend
     command:
+      # Replace domain variable in config and start nginx
       - /bin/sh
       - -c
       - |
@@ -60,17 +76,21 @@ services:
             > /etc/nginx/nginx.conf
           exec nginx -g 'daemon off;'
 
+  # Certbot service - obtains and renews SSL certificates from Let's Encrypt
   certbot:
     image: certbot/certbot:latest
     env_file:
       - .env
     volumes:
+      # Webroot for Let's Encrypt verification
       - ./certbot/www:/var/www/certbot
+      # Store SSL certificates and keys
       - ./certbot/conf:/etc/letsencrypt
     entrypoint: |
       /bin/sh -c '
       echo "Using domain: ${DOMAIN}"
 
+      # Try to get a production SSL certificate
       certbot certonly \
         --webroot -w /var/www/certbot \
         -d "${DOMAIN}" \
@@ -80,6 +100,7 @@ services:
         --non-interactive \
         --keep-until-expiring \
       || (
+        # Fallback to staging certificate if production fails
         echo "Production failed, trying STAGING"
         certbot certonly \
           --staging \
@@ -93,5 +114,7 @@ services:
       )
       '
 
+# Define named volumes for persistent data storage
 volumes:
+  # Database volume - persists PostgreSQL data between container restarts
   db_data:
