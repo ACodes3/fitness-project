@@ -51,14 +51,14 @@ services:
     depends_on:
       - frontend
       - backend
-    command: >
-      sh -c "
-      envsubst '\${DOMAIN}'
-        < /etc/nginx/nginx.conf.src
-        > /etc/nginx/nginx.conf
-      && nginx -g 'daemon off;'
-      "
-
+    command:
+      - /bin/sh
+      - -c
+      - |
+          envsubst '${DOMAIN}' \
+            < /etc/nginx/nginx.conf.src \
+            > /etc/nginx/nginx.conf
+          exec nginx -g 'daemon off;'
 
   certbot:
     image: certbot/certbot:latest
