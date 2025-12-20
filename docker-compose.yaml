@@ -49,16 +49,18 @@ services:
     depends_on:
       - frontend
       - backend
-    entrypoint: /bin/sh -c '
-      if [ ! -f /etc/letsencrypt/live/devops-vm-30.lrk.si/fullchain.pem ]; then
-        mkdir -p /etc/letsencrypt/live/devops-vm-30.lrk.si;
+    entrypoint: |
+      /bin/sh -c '
+      if [ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]; then
+        mkdir -p /etc/letsencrypt/live/${DOMAIN};
         apk add --no-cache openssl >/dev/null 2>&1 || true;
-        openssl req -x509 -nodes -newkey rsa:2048 -days 1
-          -keyout /etc/letsencrypt/live/devops-vm-30.lrk.si/privkey.pem
-          -out /etc/letsencrypt/live/devops-vm-30.lrk.si/fullchain.pem
-          -subj "/CN=devops-vm-30.lrk.si";
+        openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+          -keyout /etc/letsencrypt/live/${DOMAIN}/privkey.pem \
+          -out /etc/letsencrypt/live/${DOMAIN}/fullchain.pem \
+          -subj "/CN=${DOMAIN}";
       fi;
-      nginx -g "daemon off;"; '
+      nginx -g "daemon off;"
+      '
 
   certbot:
     image: certbot/certbot:latest
@@ -67,24 +69,23 @@ services:
     volumes:
       - ./certbot/www:/var/www/certbot
       - ./certbot/conf:/etc/letsencrypt
-    entrypoint: /bin/sh -c "
-      DOMAIN=devops-vm-30.lrk.si;
-      EMAIL=admin@devops-vm-30.lrk.si;
-
-      echo '=== Trying PRODUCTION Let’s Encrypt ===';
+    entrypoint: |
+      /bin/sh -c '
+      echo "Using domain: ${DOMAIN}"
 
       certbot certonly --webroot -w /var/www/certbot \
-        -d \"$DOMAIN\" \
-        --email \"$EMAIL\" \
+        -d "${DOMAIN}" \
+        --email "${CERTBOT_EMAIL}" \
         --agree-tos --no-eff-email \
       || (
-        echo '=== Production failed, trying STAGING ===' &&
+        echo "Production failed, trying STAGING"
         certbot certonly --staging --webroot -w /var/www/certbot \
-          -d \"$DOMAIN\" \
-          --email \"$EMAIL\" \
+          -d "${DOMAIN}" \
+          --email "${CERTBOT_EMAIL}" \
           --agree-tos --no-eff-email
       )
-    "
+      '
+
 
 volumes:
   db_data:
