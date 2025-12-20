@@ -39,28 +39,26 @@ services:
 
   proxy:
     image: nginx:1.26-alpine
+    env_file:
+      - .env
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf.src
       - ./certbot/www:/var/www/certbot
       - ./certbot/conf:/etc/letsencrypt
     depends_on:
       - frontend
       - backend
-    entrypoint: |
-      /bin/sh -c '
-      if [ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]; then
-        mkdir -p /etc/letsencrypt/live/${DOMAIN};
-        apk add --no-cache openssl >/dev/null 2>&1 || true;
-        openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
-          -keyout /etc/letsencrypt/live/${DOMAIN}/privkey.pem \
-          -out /etc/letsencrypt/live/${DOMAIN}/fullchain.pem \
-          -subj "/CN=${DOMAIN}";
-      fi;
-      nginx -g "daemon off;"
-      '
+    command: >
+      sh -c "
+      envsubst '\${DOMAIN}'
+        < /etc/nginx/nginx.conf.src
+        > /etc/nginx/nginx.conf
+      && nginx -g 'daemon off;'
+      "
+
 
   certbot:
     image: certbot/certbot:latest
