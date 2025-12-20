@@ -62,9 +62,29 @@ services:
 
   certbot:
     image: certbot/certbot:latest
+    env_file:
+      - .env
     volumes:
       - ./certbot/www:/var/www/certbot
       - ./certbot/conf:/etc/letsencrypt
+    entrypoint: /bin/sh -c "
+      DOMAIN=devops-vm-30.lrk.si;
+      EMAIL=admin@devops-vm-30.lrk.si;
+
+      echo '=== Trying PRODUCTION Let’s Encrypt ===';
+
+      certbot certonly --webroot -w /var/www/certbot \
+        -d \"$DOMAIN\" \
+        --email \"$EMAIL\" \
+        --agree-tos --no-eff-email \
+      || (
+        echo '=== Production failed, trying STAGING ===' &&
+        certbot certonly --staging --webroot -w /var/www/certbot \
+          -d \"$DOMAIN\" \
+          --email \"$EMAIL\" \
+          --agree-tos --no-eff-email
+      )
+    "
 
 volumes:
   db_data:
