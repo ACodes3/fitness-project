@@ -71,19 +71,27 @@ services:
       /bin/sh -c '
       echo "Using domain: ${DOMAIN}"
 
-      certbot certonly --webroot -w /var/www/certbot \
+      certbot certonly \
+        --webroot -w /var/www/certbot \
         -d "${DOMAIN}" \
         --email "${CERTBOT_EMAIL}" \
-        --agree-tos --no-eff-email \
+        --agree-tos \
+        --no-eff-email \
+        --non-interactive \
+        --keep-until-expiring \
       || (
         echo "Production failed, trying STAGING"
-        certbot certonly --staging --webroot -w /var/www/certbot \
+        certbot certonly \
+          --staging \
+          --webroot -w /var/www/certbot \
           -d "${DOMAIN}" \
           --email "${CERTBOT_EMAIL}" \
-          --agree-tos --no-eff-email
+          --agree-tos \
+          --no-eff-email \
+          --non-interactive \
+          --keep-until-expiring
       )
       '
-
 
 volumes:
   db_data:
