@@ -308,3 +308,7 @@ Run the same command without --staging for production certificate.
 ```
 docker exec $(docker ps -qf name=proxy) nginx -s reload
 ```
+
+---
+
+Link to the deployment video: [Video of deployment logs/output.](https://drive.google.com/file/d/1wPJRGoT21q1EvEOf4DHR3E_7V7nCbXyJ/view?usp=sharing)
