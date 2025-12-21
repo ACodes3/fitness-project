@@ -261,7 +261,14 @@ git clone https://github.com/ACodes3/fitness-project.git
 cd fitness-project
 ```
 
-2. Create environment file on the VM 
+2. Set up Docker buildx for multi-architecture builds:
+
+```
+docker buildx create --name multiarch --use
+docker buildx inspect --bootstrap
+```
+
+3. Create environment file on the VM 
 
 ```
 nano .env
@@ -290,7 +297,7 @@ REDIS_PORT=6379
 JWT_SECRET=change_me_to_a_strong_secret
 ```
 
-3. Run Docker Compose up (development/testing) (staging cert.)
+4. Run Docker Compose up (development/testing) (staging cert.)
 
 ```
 docker compose run --rm certbot certonly \
@@ -303,7 +310,7 @@ docker compose run --rm certbot certonly \
 
 Run the same command without --staging for production certificate.
 
-4. Reload ngix:
+5. Reload ngix:
 
 ```
 docker exec $(docker ps -qf name=proxy) nginx -s reload

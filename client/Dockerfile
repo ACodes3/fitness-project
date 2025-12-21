@@ -1,22 +1,34 @@
-# node alpine da je manjsi image
+# syntax=docker/dockerfile:1.7
+
+############################
+# Build stage
+############################
 FROM node:20-alpine AS builder
 WORKDIR /client
 
-# Kopiramo package.json in package-lock.json 
-COPY package*.json .
-RUN npm install      
+# Copy dependency files FIRST (cache-friendly)
+COPY package*.json ./
+RUN npm ci
 
-# Kopiramo ostale fajle
-COPY . .         
+# Copy rest of source
+COPY . .
 
-# Buildamo aplikacijo
-RUN npm run build  
+# Build
+RUN npm run build
 
-# 2nd stage - Nginx server za serviranje statičnih fajlov
-FROM nginx:alpine   
+############################
+# Runtime stage (minimal)
+############################
+FROM nginx:1.26-alpine
 
-# Kopiramo buildane fajle iz prejšnjega stage-a v Nginx folder 
-COPY --from=builder /client/dist /usr/share/nginx/html 
+# Remove default nginx assets
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy build output
+COPY --from=builder /client/dist /usr/share/nginx/html
+
+# Nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80 
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
