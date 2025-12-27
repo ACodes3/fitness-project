@@ -254,6 +254,81 @@ This section describes the container-based deployment. The entire application st
 - A domain pointing to this VM (example: devops-vm-30.lrk.si)
 - Ports 80 and 443 reachable from the internet (opened in VM firewall / security group)
 
+### Installation
+
+#### Step 1: Install Docker
+
+Docker is the containerization platform that runs our entire application stack. Follow these steps to install it:
+
+##### 1.1 Ensure curl is installed
+
+```bash
+sudo apt update
+sudo apt install -y curl
+```
+
+Curl is necessary for downloading the Docker installation script.
+
+##### 1.2 Install Docker using the official convenience script
+
+```bash
+curl -fsSL https://get.docker.com/ | sh
+```
+
+This script automatically detects your Linux distribution and installs the appropriate Docker version. While this method is sometimes called "dirty" because it's less customizable, it's the fastest and most reliable way to get Docker up and running.
+
+##### 1.3 Enable Docker without sudo (REQUIRED)
+
+By default, Docker requires root privileges. To use Docker as a regular user, add yourself to the docker group:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+**IMPORTANT:** Group membership changes require a new login session. You must either:
+
+- Log out and log back in, OR
+- Reboot the system, OR
+- Run the following command to activate the group in your current session:
+
+```bash
+newgrp docker
+```
+
+The `newgrp` command starts a new shell where your primary group is temporarily set to docker. This is necessary because group membership is loaded at login time, not dynamically updated.
+
+##### 1.4 Verify Docker installation
+
+Run the following command to check if Docker is properly installed:
+
+```bash
+docker version
+```
+
+You should see both Client and Server version information. If both appear, Docker is correctly installed and running.
+
+Test that Docker works without sudo:
+
+```bash
+docker ps
+```
+
+If this command returns a list (even if empty) without permission errors, you're all set. If you see "Permission denied", run `newgrp docker` as mentioned in step 1.3.
+
+#### Step 2: Clone the Repository
+
+Now that Docker is installed, let's get the application code.
+
+##### 2.1 Install Git (if not already installed)
+
+```bash
+sudo apt install -y git
+```
+
+Git is essential for version control and cloning repositories from GitHub.
+
+### Deployment Steps
+
 1. Clone repo 
 
 ```
