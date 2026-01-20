@@ -244,7 +244,7 @@ chmod +x deploy.sh
 
 ## Containerized deployment with Docker Compose
 
-This section describes the container-based deployment. The entire application stack is deployed using Docker Compose and consists of multiple services connected via an internal Docker network.
+  This section describes the container-based deployment. The entire application stack is deployed using Docker Compose and consists of multiple services connected via an internal Docker network.
 
 ### Prerequisites
 
@@ -394,3 +394,59 @@ docker exec $(docker ps -qf name=proxy) nginx -s reload
 ---
 
 Link to the deployment video: [Video of deployment logs/output.](https://drive.google.com/file/d/1wPJRGoT21q1EvEOf4DHR3E_7V7nCbXyJ/view?usp=sharing)
+
+---
+
+## Kubernetes Deployment (K8s)
+
+This section describes the Kubernetes-based deployment of the Fitness Project. The entire application stack is deployed on a Kubernetes cluster using declarative YAML manifests and consists of multiple services connected via Kubernetes Services and exposed externally using an Ingress controller.
+
+### Kubernetes Manifests
+
+All Kubernetes resources are defined using YAML manifests, located in:
+
+```
+k8s/
+├── namespace.yaml
+├── frontend-deployment.yaml
+├── frontend-service.yaml
+├── backend-deployment.yaml
+├── backend-service.yaml
+├── postgres-deployment.yaml
+├── postgres-service.yaml
+├── postgres-pv.yaml
+├── postgres-pvc.yaml
+├── redis-deployment.yaml
+├── redis-service.yaml
+├── ingress.yaml
+├── issuer.yaml
+```
+
+### Deployment Steps
+
+Clone the repository:
+
+```
+git clone https://github.com/ACodes3/fitness-project.git
+cd fitness-project
+```
+
+Apply the Kubernetes manifests:
+
+```
+kubectl apply -f k8s/
+```
+
+Verify that all resources are running:
+
+```
+kubectl get pods
+kubectl get services
+kubectl get ingress
+```
+
+Once all pods are in Running state and the TLS certificate is issued, the application is accessible at:
+
+
+
+### Screenshots / Demo
