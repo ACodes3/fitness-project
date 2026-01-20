@@ -401,52 +401,41 @@ Link to the deployment video: [Video of deployment logs/output.](https://drive.g
 
 This section describes the Kubernetes-based deployment of the Fitness Project. The entire application stack is deployed on a Kubernetes cluster using declarative YAML manifests and consists of multiple services connected via Kubernetes Services and exposed externally using an Ingress controller.
 
-### Kubernetes Manifests
+### How to Run the Project
 
-All Kubernetes resources are defined using YAML manifests, located in:
+#### 1. Deploy Kubernetes Resources
 
-```
-k8s/
-├── namespace.yaml
-├── frontend-deployment.yaml
-├── frontend-service.yaml
-├── backend-deployment.yaml
-├── backend-service.yaml
-├── postgres-deployment.yaml
-├── postgres-service.yaml
-├── postgres-pv.yaml
-├── postgres-pvc.yaml
-├── redis-deployment.yaml
-├── redis-service.yaml
-├── ingress.yaml
-├── issuer.yaml
-```
+All Kubernetes manifests are located in the k8s/ directory.
 
-### Deployment Steps
-
-Clone the repository:
+Apply the resources in logical order:
 
 ```
-git clone https://github.com/ACodes3/fitness-project.git
-cd fitness-project
+kubectl apply -f k8s/00-namespace.yaml
+kubectl apply -f k8s/01-secrets.yaml
+kubectl apply -f k8s/02-configmap-db-init.yaml
+kubectl apply -f k8s/03-postgres.yaml
+kubectl apply -f k8s/04-redis.yaml
+kubectl apply -f k8s/05-backend.yaml
+kubectl apply -f k8s/06-frontend.yaml
+kubectl apply -f k8s/07-ingress.yaml
+kubectl apply -f k8s/08-cert-manager-issuer.yaml
+kubectl apply -f k8s/10-metallb-ip-pool.yaml
 ```
 
-Apply the Kubernetes manifests:
+(Optional) Deploy blue/green frontend variant:
 
 ```
-kubectl apply -f k8s/
+kubectl apply -f k8s/09-bluegreen-frontend.yaml
 ```
 
-Verify that all resources are running:
+#### 2. Verify deployment:
 
 ```
-kubectl get pods
-kubectl get services
-kubectl get ingress
+kubectl get pods -n fitness
+kubectl get svc -n fitness
+kubectl get ingress -n fitness
 ```
 
 Once all pods are in Running state and the TLS certificate is issued, the application is accessible at:
-
-
 
 ### Screenshots / Demo
