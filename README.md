@@ -427,6 +427,9 @@ These components are considered cluster-level infrastructure and are not managed
 
 #### 1. Deploy Kubernetes Resources
 
+> **Note:** Before deploying, update `k8s/01-secrets.yaml` with valid database credentials and a JWT secret.  
+> Placeholder values must be replaced.
+
 All Kubernetes manifests are located in the k8s/ directory.
 
 Apply the resources in logical order:
@@ -450,6 +453,8 @@ kubectl apply -f k8s/10-metallb-ip-pool.yaml
 kubectl apply -f k8s/09-bluegreen-frontend.yaml
 ```
 
+This deployment is used to demonstrate a blue/green deployment strategy by switching traffic at the Service level.
+
 #### 2. Verify deployment:
 
 ```
@@ -461,7 +466,14 @@ kubectl get ingress -n fitness
 Once all pods are in Running state and the TLS certificate is issued, the application is accessible at:
 
 ```
-https://
+https://devops-vm-05.lrk.si
 ```
 
+> The domain must point to the cluster’s external IP (Ingress / MetalLB).
+
+
 ### Screenshots / Demo
+
+- rolling update of the backend with zero downtime
+- blue/green deployment of the frontend
+- multiple backend replicas running simultaneously
