@@ -554,6 +554,12 @@ https://devops-vm-05.lrk.si
 
 ### Screenshots / Demo
 
-- rolling update of the backend with zero downtime
-- blue/green deployment of the frontend
-- multiple backend replicas running simultaneously
+![Infrastructure is Kubernetes (not Docker)](https://drive.google.com/file/d/1IOvv5JOifeW-3joaRMbodQPeuD6UkoqM/view?usp=sharing)
+![App exposed via Ingress + Public IP + TLS](https://drive.google.com/file/d/10E4nHxgo6nIIM06-MVaoXJ_dyDfWCMSr/view?usp=sharing)
+![Minimum 3 services + HA replicas](https://drive.google.com/file/d/1LUj5tlhkla29qSkDPNcSrB7mOowkv9tP/view?usp=sharing)
+![PersistentVolume usage](https://drive.google.com/file/d/1kNmF7JMcn5X1bA3yLU0C-xKdV4OriCop/view?usp=sharing)
+![Apply manifests](https://drive.google.com/file/d/19IEeyEoMp4kItHMAbb33iZTl6s29C2yN/view?usp=sharing)
+![Rolling update demo Terminal 1](https://drive.google.com/file/d/1NcTZvKmu2oy4rnVP79weZbGXZKKRxhjY/view?usp=sharing)
+![Rolling update demo Terminal 2](https://drive.google.com/file/d/1jDxwikCSwksSFkrAvlGQT8YlfhhLjRtY/view?usp=sharing)
+![TLS certificate](https://drive.google.com/file/d/1xgwGE-td7EBsbmKS4msQFuZ3zROM8GrM/view?usp=sharing)
+![kubectl rollout history](https://drive.google.com/file/d/1xUZZ7c3Tl95UiGfJbkoXNT-m7ny5rJto/view?usp=sharing)
