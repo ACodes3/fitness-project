@@ -425,6 +425,86 @@ These components are considered cluster-level infrastructure and are not managed
 
 ---
 
+#### Example Cluster Setup (k3s on a Single VM)
+
+This section shows one possible way to set up a compatible Kubernetes cluster.
+If a cluster with the required components already exists, this step can be skipped.
+
+Install k3s
+
+```
+curl -sfL https://get.k3s.io | sh -
+```
+
+Configure kubectl access:
+
+```
+mkdir -p ~/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown -R $USER:$USER ~/.kube
+chmod 600 ~/.kube/config
+```
+
+Verify cluster:
+
+```
+kubectl get nodes
+```
+
+Disable default Traefik Ingress (This project uses NGINX Ingress instead of Traefik.)
+
+```
+sudo systemctl stop k3s
+sudo nano /etc/systemd/system/k3s.service
+```
+
+Add the following flag to the ExecStart command:
+
+```
+--disable traefik
+```
+
+Restart k3s:
+
+```
+sudo systemctl daemon-reexec
+sudo systemctl restart k3s
+```
+
+Install NGINX Ingress Controller
+
+```
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+```
+
+Install cert-manager
+
+```
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+```
+
+Install MetalLB (Bare-Metal Clusters)
+
+```
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.5/config/manifests/metallb-native.yaml
+```
+
+Apply the IP address pool configuration provided in this repository:
+
+```
+curl -sfL https://get.k3s.io | sh -
+```
+
+Verify Cluster Components
+
+```
+kubectl get pods -n kube-system
+kubectl get pods -n ingress-nginx
+kubectl get pods -n cert-manager
+kubectl get pods -n metallb-system
+kubectl get storageclass
+```
+
 #### 1. Deploy Kubernetes Resources
 
 > **Note:** Before deploying, update `k8s/01-secrets.yaml` with valid database credentials and a JWT secret.  
