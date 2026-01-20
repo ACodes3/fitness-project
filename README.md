@@ -403,6 +403,28 @@ This section describes the Kubernetes-based deployment of the Fitness Project. T
 
 ### How to Run the Project
 
+#### Prerequisites
+
+- Linux virtual machine (tested on Ubuntu)
+- Docker
+- kubectl
+- Kubernetes cluster (MicroK8s, k3s, or managed)
+- GitHub account (for Container Registry and CI/CD)
+
+#### Cluster Requirements (One-Time)
+
+The Kubernetes cluster must have the following components available:
+
+- DNS (CoreDNS)
+- Ingress controller (ingress-nginx)
+- A default StorageClass (for PVCs)
+- cert-manager (for TLS)
+- MetalLB (if the cluster has no cloud LoadBalancer)
+
+These components are considered cluster-level infrastructure and are not managed by this repository.
+
+---
+
 #### 1. Deploy Kubernetes Resources
 
 All Kubernetes manifests are located in the k8s/ directory.
@@ -437,5 +459,9 @@ kubectl get ingress -n fitness
 ```
 
 Once all pods are in Running state and the TLS certificate is issued, the application is accessible at:
+
+```
+https://
+```
 
 ### Screenshots / Demo
